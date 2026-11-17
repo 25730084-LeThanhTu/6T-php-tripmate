@@ -54,6 +54,8 @@ Cấu hình Rspack nằm ở `frontend/rspack.config.mts` (dùng `@nx/angular-rs
 
 Kiểm tra backend: http://localhost:8000/up
 
+📘 Hướng dẫn chi tiết cấu hình Docker cho backend: [DOCKER.md](DOCKER.md)
+
 > **Lỗi `additional privileges requested: --allow=fs.read=...` khi build:**
 > do đường dẫn thư mục có dấu tiếng Việt. Build bằng lệnh:
 > `BUILDX_BAKE_ENTITLEMENTS_FS=0 docker compose up -d --build`
