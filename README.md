@@ -28,17 +28,29 @@
 
 ## Chạy dự án
 
-Yêu cầu: Docker Desktop, Node.js 22+.
+Yêu cầu: Docker Desktop, Node.js 22+, Yarn 1.x (`npm i -g yarn` hoặc `corepack enable`).
 
 ```bash
 # 1. Backend + MySQL (tự chạy composer install, migrate, seed)
 docker compose up -d --build
 
-# 2. Frontend
+# 2. Frontend (Angular build bằng Rspack)
 cd frontend
-npm install
-npm start
+yarn install
+yarn start        # dev server: http://localhost:4200
 ```
+
+### Lệnh frontend
+
+| Lệnh          | Chức năng |
+|---------------|-----------|
+| `yarn start`  | `rspack serve` – dev server (cấu hình development, dùng `environment.development.ts`) |
+| `yarn build`  | `rspack build` – build production ra `frontend/dist/frontend` |
+| `yarn watch`  | build development và tự build lại khi sửa code |
+| `yarn test`   | chạy unit test (Angular CLI + Vitest) |
+| `yarn ng generate component features/trips/trip-list` | tạo component bằng Angular CLI |
+
+Cấu hình Rspack nằm ở `frontend/rspack.config.mts` (dùng `@nx/angular-rspack`).
 
 Kiểm tra backend: http://localhost:8000/up
 
