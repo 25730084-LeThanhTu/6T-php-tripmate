@@ -9,13 +9,14 @@ import {
 import { Router, RouterLink } from '@angular/router';
 
 import { AUTH_LINKS, AUTH_PREFILL } from '../../../core/mock/auth.mock';
+import { TranslatePipe } from '../../../core/i18n';
 
 interface RegisterField {
   id: string;
-  label: string;
+  labelKey: string;
   control: 'fullName' | 'username' | 'email' | 'password' | 'confirmPassword';
   type: 'text' | 'email' | 'password';
-  placeholder: string;
+  placeholderKey: string;
   autocomplete: string;
   /** Biểu tượng trong ô nhập (null = chưa có tài sản tương ứng). */
   icon: string | null;
@@ -36,7 +37,7 @@ function passwordsMatch(group: AbstractControl): ValidationErrors | null {
  */
 @Component({
   selector: 'app-register',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, TranslatePipe],
   templateUrl: './register.html',
 })
 export default class Register {
@@ -48,46 +49,46 @@ export default class Register {
   protected readonly fields: readonly RegisterField[] = [
     {
       id: 'reg-name',
-      label: 'Họ và tên',
+      labelKey: 'auth.register.fullName',
       control: 'fullName',
       type: 'text',
-      placeholder: 'Nguyễn Minh',
+      placeholderKey: 'auth.register.fullNamePlaceholder',
       autocomplete: 'name',
       icon: null,
     },
     {
       id: 'reg-username',
-      label: 'Tên người dùng',
+      labelKey: 'auth.register.username',
       control: 'username',
       type: 'text',
-      placeholder: '@nguyenminh',
+      placeholderKey: 'auth.register.usernamePlaceholder',
       autocomplete: 'username',
       icon: null,
     },
     {
       id: 'reg-email',
-      label: 'Email',
+      labelKey: 'auth.register.email',
       control: 'email',
       type: 'email',
-      placeholder: 'minh.nguyen@gmail.com',
+      placeholderKey: 'auth.register.emailPlaceholder',
       autocomplete: 'email',
       icon: 'icons/auth/mail.svg',
     },
     {
       id: 'reg-password',
-      label: 'Mật khẩu',
+      labelKey: 'auth.register.password',
       control: 'password',
       type: 'password',
-      placeholder: 'Tối thiểu 8 ký tự',
+      placeholderKey: 'auth.register.passwordPlaceholder',
       autocomplete: 'new-password',
       icon: 'icons/auth/lock.svg',
     },
     {
       id: 'reg-confirm',
-      label: 'Xác nhận mật khẩu',
+      labelKey: 'auth.register.confirmPassword',
       control: 'confirmPassword',
       type: 'password',
-      placeholder: 'Nhập lại mật khẩu',
+      placeholderKey: 'auth.register.confirmPasswordPlaceholder',
       autocomplete: 'new-password',
       icon: 'icons/auth/lock.svg',
     },
@@ -116,6 +117,6 @@ export default class Register {
       return;
     }
     this.submitting.set(true);
-    void this.router.navigateByUrl(AUTH_LINKS.afterLogin);
+    void this.router.navigateByUrl(AUTH_LINKS.afterRegister);
   }
 }

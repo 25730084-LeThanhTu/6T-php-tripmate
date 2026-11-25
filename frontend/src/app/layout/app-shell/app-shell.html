@@ -3,28 +3,28 @@
   <aside class="sticky top-0 hidden h-screen w-[232px] shrink-0 flex-col gap-[30px] overflow-y-auto bg-surface p-[22px] lg:flex">
     <a routerLink="/trips" class="flex items-center gap-2">
       <img src="images/logo-tripmate.png" alt="" class="h-7 w-[43px] object-contain" />
-      <span class="text-[25px] font-bold text-primary">TripMate</span>
+      <span class="text-[25px] font-bold text-primary">{{ 'brand.name' | translate }}</span>
     </a>
 
     <a routerLink="/trips" [routerLinkActiveOptions]="{ exact: true }"
        routerLinkActive="bg-primary-soft font-bold !text-primary"
        class="flex items-center gap-3 rounded-panel p-3 text-sm text-muted">
       <img src="icons/trip.svg" alt="" width="20" height="20" />
-      <span>Chuyến đi của tôi</span>
+      <span>{{ 'nav.myTrips' | translate }}</span>
     </a>
 
-    <p class="text-[10px] font-bold text-muted">CHUYẾN ĐI HIỆN TẠI</p>
+    <p class="text-[10px] font-bold text-muted">{{ 'nav.currentTrip' | translate }}</p>
 
     <a [routerLink]="tripLink('')" class="flex flex-col gap-1.5 rounded-panel bg-canvas p-[14px]">
       @if (trip(); as t) {
         <span class="text-sm font-bold text-ink">{{ t.title }}</span>
         <span class="text-xs text-muted">{{ tripDates() }}</span>
       } @else if (tripId(); as id) {
-        <span class="text-sm font-bold text-ink">Chuyến đi #{{ id }}</span>
-        <span class="text-xs text-muted">Đang xem</span>
+        <span class="text-sm font-bold text-ink">#{{ id }}</span>
+        <span class="text-xs text-muted">{{ 'common.loading' | translate }}</span>
       } @else {
-        <span class="text-sm font-bold text-ink">Chưa chọn chuyến đi</span>
-        <span class="text-xs text-muted">Chọn từ danh sách</span>
+        <span class="text-sm font-bold text-ink">{{ 'nav.noTripSelected' | translate }}</span>
+        <span class="text-xs text-muted">{{ 'nav.selectFromList' | translate }}</span>
       }
     </a>
 
@@ -35,7 +35,7 @@
              routerLinkActive="bg-primary-soft font-bold !text-primary"
              class="flex items-center gap-3 rounded-item p-[11px] text-sm text-muted">
             <img [src]="item.icon" alt="" width="20" height="20" />
-            <span>{{ item.label }}</span>
+            <span>{{ item.labelKey | translate }}</span>
           </a>
         }
       </nav>
@@ -43,14 +43,14 @@
 
     <div class="flex flex-col gap-3 text-[13px] text-muted">
       @if (tripId()) {
-        <a [routerLink]="tripLink('settings')">Cài đặt chuyến đi</a>
+        <a [routerLink]="tripLink('settings')">{{ 'nav.tripSettings' | translate }}</a>
       }
-      <button type="button" class="text-left">Trợ giúp &amp; hỗ trợ</button>
+      <button type="button" class="text-left">{{ 'nav.help' | translate }}</button>
     </div>
 
     <a routerLink="/account" class="mt-auto flex flex-col gap-[3px] rounded-panel bg-canvas p-[14px]">
       <span class="text-sm font-bold text-ink">{{ userName }}</span>
-      <span class="text-xs whitespace-pre text-muted">Tài khoản cá nhân  ›</span>
+      <span class="text-xs whitespace-pre text-muted">{{ 'nav.myAccount' | translate }}  ›</span>
     </a>
   </aside>
 
@@ -58,7 +58,7 @@
     <!-- ============ Desktop: thanh công cụ (Figma 46:65) ============ -->
     <header class="hidden items-center gap-5 bg-surface px-10 py-[25px] lg:flex">
       <p class="flex-1 text-[13px] font-medium whitespace-pre text-muted">{{ breadcrumb() }}</p>
-      <a routerLink="/notifications" aria-label="Thông báo">
+      <a routerLink="/notifications" [attr.aria-label]="'nav.notifications' | translate">
         <img src="icons/bell.svg" alt="" width="20" height="20" />
       </a>
       <a routerLink="/account" class="text-[13px] font-semibold text-ink">{{ userName }}</a>
@@ -67,18 +67,18 @@
     <!-- ============ Mobile: tiêu đề (Figma 2:19 / 2:29) ============ -->
     <header class="flex min-h-[76px] items-center gap-2 px-[22px] pt-4 pb-[18px] lg:hidden">
       @if (!logoHeader()) {
-        <a [routerLink]="backLink()" aria-label="Quay lại">
+        <a [routerLink]="backLink()" [attr.aria-label]="'nav.back' | translate">
           <img src="icons/back.svg" alt="" width="22" height="22" />
         </a>
         <p class="flex-1 truncate text-xl font-bold text-primary">{{ mobileTitle() }}</p>
-        <button type="button" aria-label="Tùy chọn chuyến đi" aria-haspopup="menu"
+        <button type="button" [attr.aria-label]="'nav.more' | translate" aria-haspopup="menu"
                 [attr.aria-expanded]="menuOpen()" (click)="menuOpen.set(!menuOpen())">
           <img src="icons/more.svg" alt="" width="22" height="22" />
         </button>
       } @else {
         <img src="images/logo-tripmate.png" alt="" class="h-6 w-9 object-contain" />
-        <p class="flex-1 text-xl font-bold text-primary">TripMate</p>
-        <a routerLink="/notifications" aria-label="Thông báo">
+        <p class="flex-1 text-xl font-bold text-primary">{{ 'brand.name' | translate }}</p>
+        <a routerLink="/notifications" [attr.aria-label]="'nav.notifications' | translate">
           <img src="icons/bell-mobile.svg" alt="" width="22" height="22" />
         </a>
       }
@@ -87,42 +87,39 @@
     <!-- ============ Mobile: menu chuyến đi (Figma prototype 67:2010) ============ -->
     @if (menuOpen()) {
       <div class="fixed inset-0 z-40 bg-ink/40 lg:hidden" (click)="menuOpen.set(false)" aria-hidden="true"></div>
-      <nav role="menu" aria-label="Menu chuyến đi"
+      <nav role="menu" [attr.aria-label]="'nav.currentTrip' | translate"
            class="fixed inset-x-[22px] top-[76px] z-50 flex flex-col gap-1 rounded-card bg-surface p-[14px] shadow-lg lg:hidden"
            (keydown.escape)="menuOpen.set(false)">
-        <p class="px-[11px] pb-1 text-[10px] font-bold text-muted">{{ trip()?.title ?? 'CHUYẾN ĐI' }}</p>
+        <p class="px-[11px] pb-1 text-[10px] font-bold text-muted">{{ trip()?.title ?? ('nav.currentTrip' | translate) }}</p>
         @for (item of mobileTripMenu; track item.path) {
           <a role="menuitem" [routerLink]="tripLink(item.path)" (click)="menuOpen.set(false)"
-             class="rounded-item p-[11px] text-sm text-ink">{{ item.label }}</a>
+             class="rounded-item p-[11px] text-sm text-ink">{{ item.labelKey | translate }}</a>
         }
         <button type="button" role="menuitem" (click)="menuOpen.set(false)"
                 class="mt-1 rounded-button bg-primary-soft p-[11px] text-sm font-bold text-primary">
-          Đóng menu
+          {{ 'nav.closeMenu' | translate }}
         </button>
       </nav>
     }
 
-    <!-- ============ Nội dung (Figma 46:70 / 2:20) ============ -->
-    <main class="flex flex-1 flex-col gap-6 px-[22px] pt-1 lg:p-10"
-          [class]="showBottomNav() ? 'pb-[108px]' : 'pb-6'">
+    <!-- ============ Nội dung chính ============ -->
+    <main class="min-w-0 flex-1 px-[22px] pt-1 pb-6 lg:p-10" [class.pb-24]="showBottomNav()">
       <router-outlet />
     </main>
-  </div>
 
-  <!-- ============ Mobile: điều hướng dưới (Figma 2:21) — chỉ ở màn danh sách/tổng quan ============ -->
-  @if (showBottomNav()) {
-  <nav class="fixed inset-x-0 bottom-0 flex min-h-[84px] items-start gap-2 bg-surface px-[22px] pt-[14px] pb-[22px] lg:hidden">
-    @for (tab of mobileTabs; track tab.key) {
-      <a [routerLink]="tabLink(tab.key)"
-         class="flex flex-1 flex-col items-center gap-1 text-[10px]"
-         [class.font-bold]="activeTab() === tab.key"
-         [class.text-primary]="activeTab() === tab.key"
-         [class.font-medium]="activeTab() !== tab.key"
-         [class.text-muted]="activeTab() !== tab.key">
-        <img [src]="tabIcon(tab)" alt="" width="22" height="22" />
-        <span>{{ tab.label }}</span>
-      </a>
+    <!-- ============ Mobile: thanh điều hướng dưới (Figma 2:21) ============ -->
+    @if (showBottomNav()) {
+      <nav class="fixed inset-x-0 bottom-0 z-30 flex items-center justify-around border-t border-line bg-surface py-2 shadow-sm lg:hidden"
+           [attr.aria-label]="'nav.myTrips' | translate">
+        @for (tab of mobileTabs; track tab.key) {
+          <a [routerLink]="tabLink(tab.key)"
+             class="flex flex-1 flex-col items-center gap-1 py-1 text-[11px] font-medium"
+             [class]="activeTab() === tab.key ? 'text-primary font-bold' : 'text-muted'">
+            <img [src]="tabIcon(tab)" alt="" width="22" height="22" />
+            <span>{{ tab.labelKey | translate }}</span>
+          </a>
+        }
+      </nav>
     }
-  </nav>
-  }
+  </div>
 </div>

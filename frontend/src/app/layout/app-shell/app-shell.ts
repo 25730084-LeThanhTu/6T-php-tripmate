@@ -12,6 +12,7 @@ import { filter, map, startWith } from 'rxjs';
 
 import { FIGMA_SCREENS, FigmaScreen } from '../../core/figma/figma-screens';
 import { MOCK_CURRENT_USER, MOCK_TRIPS, findTrip, formatDateRange } from '../../core/mock/mock-data';
+import { I18nService, TranslatePipe } from '../../core/i18n';
 
 /** Màn có thanh điều hướng dưới trên mobile (Figma: frame "Điều hướng" có 4 tab) */
 const SCREENS_WITH_BOTTOM_NAV = new Set([
@@ -28,13 +29,8 @@ const SCREENS_WITH_BOTTOM_NAV = new Set([
   '25',
 ]);
 
-/** Tiêu đề header mobile khác tên màn */
-const MOBILE_TITLE_OVERRIDES: Record<string, string> = {
-  '10': 'Lời mời chuyến đi',
-};
-
 interface TripMenuItem {
-  label: string;
+  labelKey: string;
   icon: string;
   /** Đường dẫn con, nối sau /trips/:tripId */
   path: string;
@@ -42,7 +38,7 @@ interface TripMenuItem {
 
 interface MobileTab {
   key: 'trips' | 'expenses' | 'album' | 'account';
-  label: string;
+  labelKey: string;
   icon: string;
 }
 
@@ -53,45 +49,46 @@ interface MobileTab {
  */
 @Component({
   selector: 'app-shell',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, TranslatePipe],
   templateUrl: './app-shell.html',
 })
 export class AppShell {
   private readonly router = inject(Router);
+  protected readonly i18n = inject(I18nService);
 
   /** Menu chuyến đi mở từ nút "…" trên header mobile (Figma prototype 67:2010) */
   protected readonly menuOpen = signal(false);
-  protected readonly mobileTripMenu: readonly { label: string; path: string }[] = [
-    { label: 'Tổng quan', path: '' },
-    { label: 'Cài đặt chuyến đi', path: 'settings' },
-    { label: 'Thành viên', path: 'members' },
-    { label: 'Lịch trình', path: 'itinerary' },
-    { label: 'Ngân sách', path: 'budget' },
-    { label: 'Quỹ chung', path: 'fund' },
-    { label: 'Chi tiêu', path: 'expenses' },
-    { label: 'Chia tiền', path: 'settlements' },
-    { label: 'Thống kê', path: 'stats' },
-    { label: 'Album ảnh', path: 'album' },
+  protected readonly mobileTripMenu: readonly { labelKey: string; path: string }[] = [
+    { labelKey: 'nav.overview', path: '' },
+    { labelKey: 'nav.tripSettings', path: 'settings' },
+    { labelKey: 'nav.members', path: 'members' },
+    { labelKey: 'nav.itinerary', path: 'itinerary' },
+    { labelKey: 'nav.budget', path: 'budget' },
+    { labelKey: 'nav.fund', path: 'fund' },
+    { labelKey: 'nav.expenses', path: 'expenses' },
+    { labelKey: 'nav.settlements', path: 'settlements' },
+    { labelKey: 'nav.stats', path: 'stats' },
+    { labelKey: 'nav.album', path: 'album' },
   ];
 
   /** Menu chuyến đi trong sidebar desktop (Figma 46:25) */
   protected readonly tripMenu: readonly TripMenuItem[] = [
-    { label: 'Tổng quan', icon: 'icons/trip.svg', path: '' },
-    { label: 'Lịch trình', icon: 'icons/calendar.svg', path: 'itinerary' },
-    { label: 'Thành viên', icon: 'icons/user.svg', path: 'members' },
-    { label: 'Ngân sách', icon: 'icons/wallet.svg', path: 'budget' },
-    { label: 'Chi tiêu', icon: 'icons/receipt.svg', path: 'expenses' },
-    { label: 'Chia tiền', icon: 'icons/check.svg', path: 'settlements' },
-    { label: 'Thống kê', icon: 'icons/download.svg', path: 'stats' },
-    { label: 'Album ảnh', icon: 'icons/image.svg', path: 'album' },
+    { labelKey: 'nav.overview', icon: 'icons/trip.svg', path: '' },
+    { labelKey: 'nav.itinerary', icon: 'icons/calendar.svg', path: 'itinerary' },
+    { labelKey: 'nav.members', icon: 'icons/user.svg', path: 'members' },
+    { labelKey: 'nav.budget', icon: 'icons/wallet.svg', path: 'budget' },
+    { labelKey: 'nav.expenses', icon: 'icons/receipt.svg', path: 'expenses' },
+    { labelKey: 'nav.settlements', icon: 'icons/check.svg', path: 'settlements' },
+    { labelKey: 'nav.stats', icon: 'icons/download.svg', path: 'stats' },
+    { labelKey: 'nav.album', icon: 'icons/image.svg', path: 'album' },
   ];
 
   /** Thanh điều hướng dưới trên mobile (Figma 2:21) */
   protected readonly mobileTabs: readonly MobileTab[] = [
-    { key: 'trips', label: 'Chuyến đi', icon: 'trip' },
-    { key: 'expenses', label: 'Chi tiêu', icon: 'wallet' },
-    { key: 'album', label: 'Album', icon: 'image' },
-    { key: 'account', label: 'Cá nhân', icon: 'user' },
+    { key: 'trips', labelKey: 'nav.tabs.trips', icon: 'trip' },
+    { key: 'expenses', labelKey: 'nav.tabs.expenses', icon: 'wallet' },
+    { key: 'album', labelKey: 'nav.tabs.album', icon: 'image' },
+    { key: 'account', labelKey: 'nav.tabs.account', icon: 'user' },
   ];
 
   /** Chuyến đi mở gần nhất — giữ lại khi chuyển sang màn ngoài chuyến đi */
@@ -132,14 +129,14 @@ export class AppShell {
 
   /** Breadcrumb thanh công cụ desktop: Chuyến đi của tôi / <chuyến đi> / <màn> */
   protected readonly breadcrumb = computed(() => {
-    // Figma: 04 "Chuyến đi của tôi / Tất cả chuyến đi"; các màn khác "… / <chuyến đi hiện tại> / <tên màn>"
-    const parts = ['Chuyến đi của tôi'];
+    const myTripsText = this.i18n.t('nav.myTrips');
+    const parts = [myTripsText];
     const title = this.screen()?.title;
     if (this.screen()?.no === '04') {
-      parts.push('Tất cả chuyến đi');
+      parts.push(this.i18n.t('trips.yourJourneys'));
     } else {
       const tripTitle =
-        this.trip()?.title ?? (this.isTripScreen() ? `Chuyến đi #${this.tripId()}` : null);
+        this.trip()?.title ?? (this.isTripScreen() ? `#${this.tripId()}` : null);
       if (tripTitle) parts.push(tripTitle);
       if (title) parts.push(title);
     }
@@ -159,7 +156,8 @@ export class AppShell {
     const s = this.screen();
     if (!s) return '';
     if (s.no === '06') return this.trip()?.title ?? s.title;
-    return MOBILE_TITLE_OVERRIDES[s.no] ?? s.title;
+    if (s.no === '10') return this.i18n.t('nav.invitationTitle');
+    return s.title;
   });
 
   /** Nút quay lại: về màn cha (bỏ đoạn cuối của đường dẫn), không có thì về /trips */

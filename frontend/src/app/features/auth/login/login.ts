@@ -3,6 +3,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 
 import { AUTH_LINKS, AUTH_PREFILL } from '../../../core/mock/auth.mock';
+import { TranslatePipe } from '../../../core/i18n';
 
 /**
  * Màn 01 · Đăng nhập
@@ -11,7 +12,7 @@ import { AUTH_LINKS, AUTH_PREFILL } from '../../../core/mock/auth.mock';
  */
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, TranslatePipe],
   templateUrl: './login.html',
 })
 export default class Login {

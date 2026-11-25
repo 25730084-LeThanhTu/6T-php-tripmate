@@ -1,10 +1,9 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { map } from 'rxjs';
 
-import { findTrip, formatDate, formatDateRange, formatVnd } from '../../../core/mock/mock-data';
 import { EXPENSE_MOCK_TODAY, expenseAuditLogs } from '../../../core/mock/expenses.mock';
+import { findTrip, formatDate, formatDateRange, formatVnd } from '../../../core/mock/mock-data';
 import {
   ExpenseStore,
   SPLIT_LONG_LABEL,

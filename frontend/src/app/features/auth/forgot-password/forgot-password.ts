@@ -3,6 +3,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 
 import { AUTH_LINKS, AUTH_PREFILL, RESET_RESEND_SECONDS } from '../../../core/mock/auth.mock';
+import { TranslatePipe } from '../../../core/i18n';
 
 /**
  * Màn 03 · Khôi phục mật khẩu
@@ -11,7 +12,7 @@ import { AUTH_LINKS, AUTH_PREFILL, RESET_RESEND_SECONDS } from '../../../core/mo
  */
 @Component({
   selector: 'app-forgot-password',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, TranslatePipe],
   templateUrl: './forgot-password.html',
 })
 export default class ForgotPassword {

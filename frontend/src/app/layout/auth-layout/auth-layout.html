@@ -3,20 +3,20 @@
   <aside class="hidden w-[660px] shrink-0 flex-col items-start gap-7 bg-primary p-14 lg:flex">
     <div class="flex w-[210px] items-center gap-2.5 rounded-card bg-surface p-3">
       <img src="images/logo-tripmate.png" alt="" class="h-[30px] w-[46px] object-contain" />
-      <span class="text-[26px] font-bold text-primary">TripMate</span>
+      <span class="text-[26px] font-bold text-primary">{{ 'brand.name' | translate }}</span>
     </div>
 
     <span class="rounded-card bg-primary-soft px-2.5 py-1.5 text-[13px] font-bold whitespace-nowrap text-primary">
-      ĐI CÙNG NHAU. CHIA SẺ DỄ DÀNG.
+      {{ 'brand.chip' | translate }}
     </span>
 
-    <h1 class="text-[44px] font-bold text-white">Chuyến đi vui hơn,<br />khi có nhau.</h1>
-    <p class="text-base text-white">Đồng hành khám phá – Minh bạch sẻ chia</p>
+    <h1 class="text-[44px] font-bold text-white">{{ 'auth.login.heading' | translate }}</h1>
+    <p class="text-base text-white">{{ 'brand.tagline' | translate }}</p>
 
-    <img src="images/auth-hero.jpg" alt="Nhóm bạn cùng du lịch Đà Lạt" class="h-[390px] w-full rounded-hero object-cover" />
+    <img src="images/auth-hero.jpg" alt="" class="h-[390px] w-full rounded-hero object-cover" />
 
     <p class="text-[15px] text-white">
-      Cùng lên kế hoạch. Minh bạch từng khoản chi.<br />Giữ lại những kỷ niệm đẹp cùng hội bạn.
+      {{ 'brand.desc' | translate }}
     </p>
   </aside>
 
@@ -24,17 +24,17 @@
   <main class="flex min-w-0 flex-1 flex-col lg:items-center lg:justify-center lg:px-24 lg:py-16">
     <!-- Mobile: header logo (Figma 2:4) hoặc quay lại + tiêu đề (Figma 2:9, 2:14) -->
     <header class="flex min-h-[76px] items-center gap-2 px-[22px] pt-4 pb-[18px] lg:hidden">
-      @if (mobileTitle(); as title) {
-        <a routerLink="/auth/login" aria-label="Quay lại đăng nhập">
+      @if (mobileTitleKey(); as titleKey) {
+        <a routerLink="/auth/login" [attr.aria-label]="'common.back' | translate">
           <img src="icons/back.svg" alt="" width="22" height="22" />
         </a>
-        <p class="flex-1 truncate text-xl font-bold text-primary">{{ title }}</p>
-        <button type="button" aria-label="Tùy chọn">
+        <p class="flex-1 truncate text-xl font-bold text-primary">{{ titleKey | translate }}</p>
+        <button type="button" [attr.aria-label]="'nav.more' | translate">
           <img src="icons/more.svg" alt="" width="22" height="22" />
         </button>
       } @else {
         <img src="images/logo-tripmate.png" alt="" class="h-8 w-12 object-contain" />
-        <span class="text-xl font-bold text-primary">TripMate</span>
+        <span class="text-xl font-bold text-primary">{{ 'brand.name' | translate }}</span>
       }
     </header>
 

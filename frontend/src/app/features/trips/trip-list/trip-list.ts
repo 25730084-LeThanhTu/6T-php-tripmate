@@ -5,7 +5,6 @@ import {
   MOCK_CURRENT_USER,
   MOCK_TRIPS,
   MockTrip,
-  TRIP_STATUS_LABEL,
   formatDateRange,
   formatVnd,
 } from '../../../core/mock/mock-data';
@@ -16,6 +15,21 @@ import {
   pendingSettlementForCurrentUser,
   tripDurationLabel,
 } from '../../../core/mock/trips.mock';
+import { TranslatePipe } from '../../../core/i18n';
+
+const FILTER_I18N_KEYS: Record<TripFilter, string> = {
+  ALL: 'trips.filters.all',
+  ONGOING: 'trips.filters.ongoing',
+  UPCOMING: 'trips.filters.upcoming',
+  COMPLETED: 'trips.filters.completed',
+};
+
+const STATUS_I18N_KEYS: Record<string, string> = {
+  PLANNING: 'trips.status.PLANNING',
+  ONGOING: 'trips.status.ONGOING',
+  COMPLETED: 'trips.status.COMPLETED',
+  CANCELLED: 'trips.status.CANCELLED',
+};
 
 /**
  * Màn 04 · Chuyến đi của tôi
@@ -23,12 +37,12 @@ import {
  */
 @Component({
   selector: 'app-trip-list',
-  imports: [RouterLink],
+  imports: [RouterLink, TranslatePipe],
   templateUrl: './trip-list.html',
 })
 export default class TripList {
   protected readonly userName = MOCK_CURRENT_USER.shortName;
-  protected readonly statusLabel = TRIP_STATUS_LABEL;
+  protected readonly statusKey = STATUS_I18N_KEYS;
   protected readonly formatVnd = formatVnd;
   protected readonly formatDateRange = formatDateRange;
   protected readonly duration = tripDurationLabel;
@@ -38,6 +52,7 @@ export default class TripList {
 
   protected readonly filters = TRIP_FILTERS.map((f) => ({
     ...f,
+    labelKey: FILTER_I18N_KEYS[f.key],
     count: f.statuses
       ? MOCK_TRIPS.filter((t) => f.statuses!.includes(t.status)).length
       : MOCK_TRIPS.length,
