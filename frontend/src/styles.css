@@ -1,0 +1,37 @@
+@import 'tailwindcss';
+
+/*
+ * Design token lấy từ Figma "TripMate-Design".
+ * Dùng trong template qua class Tailwind, ví dụ:
+ *   bg-primary, bg-primary-soft, bg-canvas, text-ink, text-muted, border-line,
+ *   rounded-card, rounded-button, font-sans ...
+ */
+@theme {
+  --font-sans: 'Be Vietnam Pro', ui-sans-serif, system-ui, sans-serif;
+
+  --color-primary: #2d6785; /* nút chính, chữ thương hiệu, tab đang chọn */
+  --color-primary-soft: #eaf1f4; /* nền chip trạng thái, mục menu đang chọn */
+  --color-primary-tint: #e9f1f5; /* nền chip bộ lọc chưa chọn */
+  --color-canvas: #f8f5ef; /* nền trang, thẻ phụ trong sidebar */
+  --color-surface: #ffffff; /* thẻ, sidebar, thanh công cụ */
+  --color-ink: #203843; /* chữ chính */
+  --color-muted: #64757a; /* chữ phụ, icon chưa chọn */
+  --color-line: #e7e7e0; /* viền input, nền thanh tiến độ */
+  --color-accent: #eca66b; /* phần đã dùng của thanh tiến độ */
+
+  --radius-card: 20px; /* thẻ nội dung, chip */
+  --radius-media: 18px; /* ảnh trong thẻ */
+  --radius-hero: 24px; /* ảnh lớn trang đăng nhập */
+  --radius-button: 15px; /* nút chính */
+  --radius-input: 13px; /* ô nhập liệu */
+  --radius-panel: 12px; /* khối trong sidebar */
+  --radius-item: 10px; /* mục menu sidebar */
+}
+
+@layer base {
+  html,
+  body {
+    @apply bg-canvas font-sans text-ink antialiased;
+    line-height: 1.4;
+  }
+}

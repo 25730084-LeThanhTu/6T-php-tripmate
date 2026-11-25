@@ -28,9 +28,12 @@
     "@rspack/cli": "^2.3.3",
     "@rspack/core": "^2.3.3",
     "@rspack/dev-server": "^2",
+    "@tailwindcss/postcss": "^4.3.5",
     "jsdom": "^28.0.0",
     "nx": "24.0.6",
+    "postcss": "^8.5.33",
     "prettier": "^3.8.1",
+    "tailwindcss": "^4.3.5",
     "typescript": "~6.0.2",
     "vitest": "^4.0.8"
   }

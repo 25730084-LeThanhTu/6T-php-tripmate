@@ -1,0 +1,103 @@
+<div class="flex min-h-screen bg-canvas">
+  <!-- ============ Desktop: điều hướng bên trái (Figma 46:12) ============ -->
+  <aside class="sticky top-0 hidden h-screen w-[232px] shrink-0 flex-col gap-[30px] overflow-y-auto bg-surface p-[22px] lg:flex">
+    <a routerLink="/trips" class="flex items-center gap-2">
+      <img src="images/logo-tripmate.png" alt="" class="h-7 w-[43px] object-contain" />
+      <span class="text-[25px] font-bold text-primary">TripMate</span>
+    </a>
+
+    <a routerLink="/trips" [routerLinkActiveOptions]="{ exact: true }"
+       routerLinkActive="bg-primary-soft font-bold !text-primary"
+       class="flex items-center gap-3 rounded-panel p-3 text-sm text-muted">
+      <img src="icons/trip.svg" alt="" width="20" height="20" />
+      <span>Chuyến đi của tôi</span>
+    </a>
+
+    <p class="text-[10px] font-bold text-muted">CHUYẾN ĐI HIỆN TẠI</p>
+
+    <a [routerLink]="tripLink('')" class="flex flex-col gap-1.5 rounded-panel bg-canvas p-[14px]">
+      @if (tripId(); as id) {
+        <span class="text-sm font-bold text-ink">Chuyến đi #{{ id }}</span>
+        <span class="text-xs text-muted">Đang xem</span>
+      } @else {
+        <span class="text-sm font-bold text-ink">Chưa chọn chuyến đi</span>
+        <span class="text-xs text-muted">Chọn từ danh sách</span>
+      }
+    </a>
+
+    @if (tripId()) {
+      <nav class="flex flex-col gap-[5px]">
+        @for (item of tripMenu; track item.path) {
+          <a [routerLink]="tripLink(item.path)" [routerLinkActiveOptions]="{ exact: item.path === '' }"
+             routerLinkActive="bg-primary-soft font-bold !text-primary"
+             class="flex items-center gap-3 rounded-item p-[11px] text-sm text-muted">
+            <img [src]="item.icon" alt="" width="20" height="20" />
+            <span>{{ item.label }}</span>
+          </a>
+        }
+      </nav>
+    }
+
+    <div class="flex flex-col gap-3 text-[13px] text-muted">
+      @if (tripId()) {
+        <a [routerLink]="tripLink('settings')">Cài đặt chuyến đi</a>
+      }
+      <button type="button" class="text-left">Trợ giúp &amp; hỗ trợ</button>
+    </div>
+
+    <a routerLink="/account" class="mt-auto flex flex-col gap-[3px] rounded-panel bg-canvas p-[14px]">
+      <span class="text-sm font-bold text-ink">Tài khoản</span>
+      <span class="text-xs whitespace-pre text-muted">Tài khoản cá nhân  ›</span>
+    </a>
+  </aside>
+
+  <div class="flex min-w-0 flex-1 flex-col">
+    <!-- ============ Desktop: thanh công cụ (Figma 46:65) ============ -->
+    <header class="hidden items-center gap-5 bg-surface px-10 py-[25px] lg:flex">
+      <p class="flex-1 text-[13px] font-medium whitespace-pre text-muted">Chuyến đi của tôi  /  {{ screen()?.title }}</p>
+      <a routerLink="/notifications" aria-label="Thông báo">
+        <img src="icons/bell.svg" alt="" width="20" height="20" />
+      </a>
+      <a routerLink="/account" class="text-[13px] font-semibold text-ink">Tài khoản</a>
+    </header>
+
+    <!-- ============ Mobile: tiêu đề (Figma 2:19 / 2:29) ============ -->
+    <header class="flex min-h-[76px] items-center gap-2 px-[22px] pt-4 pb-[18px] lg:hidden">
+      @if (isTripScreen()) {
+        <a [routerLink]="backLink()" aria-label="Quay lại">
+          <img src="icons/back.svg" alt="" width="22" height="22" />
+        </a>
+        <p class="flex-1 truncate text-xl font-bold text-primary">{{ screen()?.title }}</p>
+        <button type="button" aria-label="Tùy chọn chuyến đi">
+          <img src="icons/more.svg" alt="" width="22" height="22" />
+        </button>
+      } @else {
+        <img src="images/logo-tripmate.png" alt="" class="h-6 w-9 object-contain" />
+        <p class="flex-1 text-xl font-bold text-primary">TripMate</p>
+        <a routerLink="/notifications" aria-label="Thông báo">
+          <img src="icons/bell-mobile.svg" alt="" width="22" height="22" />
+        </a>
+      }
+    </header>
+
+    <!-- ============ Nội dung (Figma 46:70 / 2:20) ============ -->
+    <main class="flex flex-1 flex-col gap-6 px-[22px] pt-1 pb-[108px] lg:p-10">
+      <router-outlet />
+    </main>
+  </div>
+
+  <!-- ============ Mobile: điều hướng dưới (Figma 2:21) ============ -->
+  <nav class="fixed inset-x-0 bottom-0 flex min-h-[84px] items-start gap-2 bg-surface px-[22px] pt-[14px] pb-[22px] lg:hidden">
+    @for (tab of mobileTabs; track tab.key) {
+      <a [routerLink]="tabLink(tab.key)"
+         class="flex flex-1 flex-col items-center gap-1 text-[10px]"
+         [class.font-bold]="activeTab() === tab.key"
+         [class.text-primary]="activeTab() === tab.key"
+         [class.font-medium]="activeTab() !== tab.key"
+         [class.text-muted]="activeTab() !== tab.key">
+        <img [src]="tabIcon(tab)" alt="" width="22" height="22" />
+        <span>{{ tab.label }}</span>
+      </a>
+    }
+  </nav>
+</div>
