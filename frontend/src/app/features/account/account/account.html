@@ -1,0 +1,153 @@
+<!-- Đầu trang desktop (46:1436) -->
+<header class="hidden flex-col gap-1.5 lg:flex">
+  <h1 class="text-[32px] font-bold text-ink">Tài khoản</h1>
+  <p class="text-sm whitespace-pre text-muted">{{ subtitle }}</p>
+</header>
+
+<!-- Tên + định danh (mobile: 2:1437/2:1438 · desktop: 46:2522) -->
+<h1 class="text-[28px] font-bold text-ink lg:hidden">{{ profile().fullName }}</h1>
+<p class="text-[13px] whitespace-pre text-muted lg:text-[15px]">{{ handle() }}</p>
+
+<div class="flex flex-col gap-[18px] lg:grid lg:grid-cols-2 lg:items-start lg:gap-6">
+  <!-- Thông tin tài khoản (46:2524) -->
+  <section class="flex flex-col gap-[18px] lg:gap-5" aria-label="Thông tin tài khoản">
+    <h2 class="hidden text-[32px] font-bold text-ink lg:block">{{ profile().fullName }}</h2>
+
+    <!-- Thẻ giới thiệu (2:1439 / 46:2527) -->
+    <div class="flex flex-col gap-3 rounded-card bg-primary-soft p-[18px] lg:gap-4 lg:p-6">
+      <p class="text-[11px] font-bold text-primary lg:text-[13px]">SẴN SÀNG CHO CHUYẾN ĐI TIẾP THEO?</p>
+      <p class="text-[25px] font-bold text-primary">Đi cùng nhau,<br />lưu thêm kỷ niệm.</p>
+      <p class="text-xs text-muted lg:text-[13px]">{{ tripStats }}</p>
+    </div>
+
+    <!-- Cài đặt tài khoản (2:1443 / 46:2531) -->
+    <div class="flex flex-col gap-3 rounded-card bg-surface p-[18px] lg:gap-4 lg:p-6">
+      <div class="flex items-center gap-3">
+        <span class="flex-1 text-[13px] text-muted lg:text-[15px]">Thông tin cá nhân</span>
+        <button type="button" (click)="toggleEdit('profile')" [attr.aria-expanded]="editing() === 'profile'"
+                class="flex-1 text-right text-sm font-semibold whitespace-pre text-primary lg:text-[15px]">{{ editing() === 'profile' ? 'Đóng' : 'Chỉnh sửa  ›' }}</button>
+      </div>
+      @if (editing() === 'profile') {
+        <form [formGroup]="profileForm" (ngSubmit)="saveProfile()" class="flex flex-col gap-3 rounded-panel bg-canvas p-[14px]">
+          <label class="flex flex-col gap-1.5 text-[13px] font-semibold text-ink">
+            Họ và tên
+            <input formControlName="fullName" autocomplete="name"
+                   class="rounded-input border border-line bg-surface px-[14px] py-3 text-sm font-normal outline-none focus:border-primary" />
+          </label>
+          <label class="flex flex-col gap-1.5 text-[13px] font-semibold text-ink">
+            Tên đăng nhập
+            <input formControlName="username" autocomplete="username"
+                   class="rounded-input border border-line bg-surface px-[14px] py-3 text-sm font-normal outline-none focus:border-primary" />
+            @if (profileForm.controls.username.touched && profileForm.controls.username.invalid) {
+              <span class="text-xs font-normal text-danger">Chỉ dùng chữ thường, số, dấu chấm hoặc gạch dưới.</span>
+            }
+          </label>
+          <label class="flex flex-col gap-1.5 text-[13px] font-semibold text-ink">
+            Email
+            <input type="email" formControlName="email" autocomplete="email"
+                   class="rounded-input border border-line bg-surface px-[14px] py-3 text-sm font-normal outline-none focus:border-primary" />
+            @if (profileForm.controls.email.touched && profileForm.controls.email.invalid) {
+              <span class="text-xs font-normal text-danger">Email chưa hợp lệ.</span>
+            }
+          </label>
+          <label class="flex flex-col gap-1.5 text-[13px] font-semibold text-ink">
+            Số điện thoại
+            <input type="tel" formControlName="phone" autocomplete="tel"
+                   class="rounded-input border border-line bg-surface px-[14px] py-3 text-sm font-normal outline-none focus:border-primary" />
+          </label>
+          <div class="flex gap-2">
+            <button type="button" (click)="editing.set(null)"
+                    class="flex-1 rounded-button bg-primary-soft px-3 py-3 text-sm font-bold text-primary">Hủy</button>
+            <button type="submit" class="flex-1 rounded-button bg-primary px-3 py-3 text-sm font-bold text-white">Lưu thay đổi</button>
+          </div>
+        </form>
+      }
+
+      <div class="flex items-center gap-3">
+        <span class="flex-1 text-[13px] text-muted lg:text-[15px]">Tài khoản nhận tiền</span>
+        <button type="button" (click)="toggleEdit('bank')" [attr.aria-expanded]="editing() === 'bank'"
+                class="flex-1 text-right text-sm font-semibold whitespace-pre text-primary lg:text-[15px]">
+          @if (editing() === 'bank') {
+            Đóng
+          } @else if (bank(); as b) {
+            {{ b.bankName }}  ›
+          } @else {
+            Thêm  ›
+          }
+        </button>
+      </div>
+      @if (editing() === 'bank') {
+        <form [formGroup]="bankForm" (ngSubmit)="saveBank()" class="flex flex-col gap-3 rounded-panel bg-canvas p-[14px]">
+          <label class="flex flex-col gap-1.5 text-[13px] font-semibold text-ink">
+            Ngân hàng
+            <input formControlName="bankName" placeholder="Ví dụ: Vietcombank"
+                   class="rounded-input border border-line bg-surface px-[14px] py-3 text-sm font-normal outline-none focus:border-primary" />
+          </label>
+          <label class="flex flex-col gap-1.5 text-[13px] font-semibold text-ink">
+            Số tài khoản
+            <input formControlName="accountNumber" inputmode="numeric"
+                   class="rounded-input border border-line bg-surface px-[14px] py-3 text-sm font-normal outline-none focus:border-primary" />
+            @if (bankForm.controls.accountNumber.touched && bankForm.controls.accountNumber.invalid) {
+              <span class="text-xs font-normal text-danger">Số tài khoản gồm 6–20 chữ số.</span>
+            }
+          </label>
+          <div class="flex gap-2">
+            <button type="button" (click)="editing.set(null)"
+                    class="flex-1 rounded-button bg-primary-soft px-3 py-3 text-sm font-bold text-primary">Hủy</button>
+            <button type="submit" class="flex-1 rounded-button bg-primary px-3 py-3 text-sm font-bold text-white">Lưu</button>
+          </div>
+        </form>
+      }
+
+      <div class="flex items-center gap-3">
+        <span class="flex-1 text-[13px] text-muted lg:text-[15px]">Mật khẩu &amp; bảo mật</span>
+        <button type="button" (click)="showDemo()" aria-label="Mật khẩu và bảo mật"
+                class="flex-1 text-right text-sm font-semibold text-primary lg:text-[15px]">›</button>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="flex-1 text-[13px] text-muted lg:text-[15px]">Tuỳ chọn thông báo</span>
+        <button type="button" (click)="toggleNotifications()" [attr.aria-pressed]="notificationsOn()"
+                class="flex-1 text-right text-sm font-semibold whitespace-pre text-primary lg:text-[15px]">{{ notificationsOn() ? 'Bật' : 'Tắt' }}  ›</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Trợ giúp và tuỳ chọn (46:2525) -->
+  <section class="flex flex-col gap-[18px] lg:gap-5" aria-label="Trợ giúp và tuỳ chọn">
+    <div class="flex flex-col gap-3 rounded-card bg-surface p-[18px] lg:gap-4 lg:p-6">
+      <div class="flex items-center gap-3">
+        <span class="flex-1 text-[13px] text-muted lg:text-[15px]">Ngôn ngữ</span>
+        <span class="flex-1 text-right text-sm font-semibold text-ink lg:text-[15px]">Tiếng Việt</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="flex-1 text-[13px] text-muted lg:text-[15px]">Trung tâm trợ giúp</span>
+        <button type="button" (click)="showDemo()" aria-label="Trung tâm trợ giúp"
+                class="flex-1 text-right text-sm font-semibold text-primary lg:text-[15px]">›</button>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="flex-1 text-[13px] text-muted lg:text-[15px]">Điều khoản &amp; quyền riêng tư</span>
+        <button type="button" (click)="showDemo()" aria-label="Điều khoản và quyền riêng tư"
+                class="flex-1 text-right text-sm font-semibold text-primary lg:text-[15px]">›</button>
+      </div>
+    </div>
+
+    <button type="button" (click)="logout()"
+            class="w-full rounded-button bg-surface px-[18px] py-[15px] text-[15px] font-bold text-primary">Đăng xuất</button>
+
+    <p class="text-center text-[11px] text-muted lg:text-[13px]">TripMate · Đồng hành khám phá – Minh bạch sẻ chia</p>
+  </section>
+</div>
+
+<!-- Prototype · Thông tin thao tác (67:1941 / 67:2070) -->
+@if (info(); as i) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 p-[22px]" (click)="closeInfo()">
+    <div role="dialog" aria-modal="true" aria-labelledby="account-info-title"
+         class="flex w-full max-w-[346px] flex-col gap-4 rounded-card bg-surface p-[25px] lg:max-w-[440px]"
+         (click)="$event.stopPropagation()">
+      <h2 id="account-info-title" class="text-[21px] font-bold text-ink">{{ i.title }}</h2>
+      <p class="text-[15px] text-muted">{{ i.message }}</p>
+      <button type="button" (click)="closeInfo()"
+              class="rounded-button bg-primary px-3 py-3 text-[15px] font-bold text-white">Đóng</button>
+    </div>
+  </div>
+}

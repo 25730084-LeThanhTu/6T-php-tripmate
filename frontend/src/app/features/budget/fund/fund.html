@@ -1,0 +1,137 @@
+@let t = trip();
+@let p = plan();
+<div class="flex flex-col gap-[18px] lg:gap-6">
+  <!-- Đầu trang – desktop (Figma 46:721) -->
+  <header class="hidden items-center gap-6 lg:flex">
+    <div class="flex flex-1 flex-col gap-1.5">
+      <h1 class="text-[32px] font-bold text-ink">Quỹ chung</h1>
+      <p class="text-sm whitespace-pre text-muted">{{ t.title }}  ·  {{ dates() }}</p>
+    </div>
+    <button type="button" (click)="openForm()"
+            class="flex w-[230px] items-center justify-center gap-2 self-stretch rounded-button bg-primary px-[18px] text-[15px] font-bold text-white">
+      <img src="icons/budget/plus.svg" alt="" width="20" height="20" />
+      <span>Ghi nhận đóng quỹ</span>
+    </button>
+  </header>
+
+  <!-- Đầu trang – mobile (Figma 2:809, 2:810) -->
+  <header class="flex flex-col gap-[18px] lg:hidden">
+    <h1 class="text-[28px] font-bold text-ink">Góp quỹ, đi thảnh thơi</h1>
+    <p class="text-[13px] text-muted">Quỹ được theo dõi riêng với khoản ứng cá nhân</p>
+  </header>
+
+  <!-- Tổng quan quỹ chung (Figma 2:811 + 2:815 / 46:2014) -->
+  <div class="flex flex-col gap-[18px] lg:grid lg:grid-cols-[minmax(0,430fr)_minmax(0,674fr)] lg:items-start lg:gap-6">
+    <section class="flex flex-col gap-3 rounded-card bg-primary p-[18px] text-white lg:gap-4 lg:p-6" aria-label="Số dư quỹ">
+      <span class="text-[11px] font-bold lg:text-[13px]">SỐ DƯ QUỸ</span>
+      <span class="text-[32px] font-bold">{{ formatVnd(balance()) }}</span>
+      <span class="text-[13px] lg:text-[15px]">
+        @if (balance() === 0) {
+          Chưa có giao dịch đóng góp hoặc chi từ quỹ.
+        } @else {
+          Đã có {{ paidCount() }} / {{ rows().length }} thành viên đóng góp.
+        }
+      </span>
+    </section>
+
+    <section class="flex flex-col gap-3 rounded-card bg-surface p-[18px] lg:gap-4 lg:p-6" aria-label="Kế hoạch đóng quỹ">
+      <dl class="flex flex-col gap-3 lg:gap-4">
+        <div class="flex items-center gap-3">
+          <dt class="flex-1 text-[13px] text-muted lg:text-[15px]">Mục tiêu đóng góp</dt>
+          <dd class="flex-1 text-right text-sm font-semibold text-ink lg:text-[15px]">{{ formatVnd(p.target) }}</dd>
+        </div>
+        <div class="flex items-center gap-3">
+          <dt class="flex-1 text-[13px] text-muted lg:text-[15px]">Mỗi thành viên</dt>
+          <dd class="flex-1 text-right text-sm font-semibold text-ink lg:text-[15px]">{{ formatVnd(p.perMember) }}</dd>
+        </div>
+        <div class="flex items-center gap-3">
+          <dt class="flex-1 text-[13px] text-muted lg:text-[15px]">Người giữ quỹ</dt>
+          <dd class="flex-1 text-right text-sm font-semibold text-ink lg:text-[15px]">{{ holderName() }}</dd>
+        </div>
+      </dl>
+      <p class="text-xs text-muted lg:text-[13px]">Số dư cá nhân hiện tại chưa bao gồm khoản đóng quỹ.</p>
+    </section>
+  </div>
+
+  @if (successMessage(); as msg) {
+    <p class="rounded-card bg-primary-soft px-[18px] py-3 text-[13px] font-semibold text-primary lg:px-6" role="status">{{ msg }}</p>
+  }
+
+  <!-- Biểu mẫu ghi nhận (trạng thái tương tác, không có trong Figma) -->
+  @if (formOpen()) {
+    <form [formGroup]="form" (ngSubmit)="submit()"
+          class="flex flex-col gap-3 rounded-card bg-surface p-[18px] lg:flex-row lg:items-end lg:gap-4 lg:p-6"
+          aria-label="Ghi nhận đóng quỹ">
+      <label class="flex flex-1 flex-col gap-1.5 text-[13px] font-semibold text-ink">
+        Thành viên
+        <select formControlName="memberId" class="rounded-input border border-line bg-surface px-3 py-2.5 text-sm font-normal">
+          @for (r of rows(); track r.memberId) {
+            <option [ngValue]="r.memberId">{{ r.name }} · {{ statusLabel[r.status] }}</option>
+          }
+        </select>
+      </label>
+      <label class="flex flex-1 flex-col gap-1.5 text-[13px] font-semibold text-ink">
+        Số tiền (₫)
+        <input type="number" min="1" step="1000" formControlName="amount"
+               class="rounded-input border border-line bg-surface px-3 py-2.5 text-sm font-normal" />
+      </label>
+      <div class="flex gap-3">
+        <button type="button" (click)="cancel()" class="flex-1 rounded-button bg-primary-tint px-[18px] py-2.5 text-sm font-bold text-primary">Hủy</button>
+        <button type="submit" class="flex-1 rounded-button bg-primary px-[18px] py-2.5 text-sm font-bold text-white">Xác nhận</button>
+      </div>
+    </form>
+  }
+
+  <!-- Đóng góp của thành viên (Figma 2:826 / 46:2032) -->
+  <section class="flex flex-col gap-[18px] lg:gap-6">
+    <div class="flex items-center gap-3">
+      <h2 class="flex-1 text-[13px] text-muted lg:text-[15px]">Đóng góp của thành viên</h2>
+      <p class="flex-1 text-right text-sm font-semibold text-ink lg:text-[15px]">{{ paidCount() }} / {{ rows().length }} đã đóng</p>
+    </div>
+
+    <!-- Mobile: danh sách (Figma 2:829) -->
+    <ul class="flex flex-col gap-3 rounded-card bg-surface p-[18px] lg:hidden">
+      @for (r of rows(); track r.memberId) {
+        <li class="flex items-center gap-3">
+          <span class="flex-1 text-[13px] text-ink">{{ r.name }}</span>
+          <span class="flex-1 text-right text-sm font-semibold"
+                [class.text-muted]="r.status === 'UNPAID'" [class.text-primary]="r.status === 'PAID'">{{ statusLabel[r.status] }}</span>
+        </li>
+      }
+    </ul>
+
+    <!-- Desktop: bảng (Figma 46:2035) -->
+    <div class="hidden rounded-card bg-surface p-6 lg:block">
+      <table class="w-full table-fixed text-left">
+        <thead>
+          <tr class="bg-canvas text-[11px] font-bold text-muted">
+            <th scope="col" class="rounded-l-panel p-[14px]">THÀNH VIÊN</th>
+            <th scope="col" class="p-[14px]">MỤC TIÊU ĐÓNG</th>
+            <th scope="col" class="p-[14px]">ĐÃ XÁC NHẬN</th>
+            <th scope="col" class="rounded-r-panel p-[14px]">TRẠNG THÁI</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (r of rows(); track r.memberId) {
+            <tr class="border-b border-line text-sm text-ink last:border-b-0">
+              <td class="px-[14px] py-[22px] font-semibold">{{ r.name }}</td>
+              <td class="px-[14px] py-[22px]">{{ formatVnd(p.perMember) }}</td>
+              <td class="px-[14px] py-[22px]">{{ formatVnd(r.confirmed) }}</td>
+              <td class="px-[14px] py-[22px] font-semibold"
+                  [class.text-muted]="r.status === 'UNPAID'" [class.text-primary]="r.status === 'PAID'">{{ statusLabel[r.status] }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Nút ghi nhận – mobile (Figma 2:842) -->
+  <button type="button" (click)="openForm()"
+          class="flex items-center justify-center gap-2 rounded-button bg-primary px-[18px] py-[15px] text-[15px] font-bold text-white lg:hidden">
+    <img src="icons/budget/plus.svg" alt="" width="20" height="20" />
+    <span>Ghi nhận đóng quỹ</span>
+  </button>
+
+  <p class="text-xs text-muted lg:text-[13px]">Chỉ các khoản đóng góp đã xác nhận mới được cộng vào số dư quỹ.</p>
+</div>

@@ -18,6 +18,8 @@
   --color-muted: #64757a; /* chữ phụ, icon chưa chọn */
   --color-line: #e7e7e0; /* viền input, nền thanh tiến độ */
   --color-accent: #eca66b; /* phần đã dùng của thanh tiến độ */
+  --color-success: #327461; /* số dư dương (Figma 19 · Chia tiền) */
+  --color-danger: #ad4940; /* số dư âm, lỗi nhập liệu, thao tác xoá */
 
   --radius-card: 20px; /* thẻ nội dung, chip */
   --radius-media: 18px; /* ảnh trong thẻ */

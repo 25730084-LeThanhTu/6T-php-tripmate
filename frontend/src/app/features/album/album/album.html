@@ -1,0 +1,82 @@
+<div class="flex flex-col gap-[18px] lg:gap-6">
+  <!-- Desktop: đầu trang (Figma 46:1241) -->
+  <div class="hidden items-stretch gap-6 lg:flex">
+    <div class="flex min-w-0 flex-1 flex-col gap-1.5">
+      <h1 class="text-[32px] font-bold text-ink">Album chuyến đi</h1>
+      <p class="text-sm whitespace-pre text-muted">{{ trip.title }}  ·  {{ dateRange }}</p>
+    </div>
+    <a [routerLink]="['/trips', trip.id, 'album', 'upload']"
+       class="flex w-[250px] items-center justify-center gap-2 rounded-button bg-primary px-[18px] py-[15px] text-[15px] font-bold text-white">
+      <img src="icons/itinerary/plus.svg" alt="" width="20" height="20" />
+      <span>Thêm ảnh vào album</span>
+    </a>
+  </div>
+
+  <p class="text-[13px] text-muted lg:text-[15px]">{{ trip.title }} · {{ totalPhotos }} ảnh</p>
+
+  <!-- Bộ lọc ngày (Figma 67:2608 / 67:3244) -->
+  <div class="flex flex-wrap items-center gap-2" role="tablist" aria-label="Lọc ảnh theo ngày">
+    <button type="button" role="tab" [attr.aria-selected]="filter() === null" (click)="filter.set(null)"
+            class="rounded-card px-2.5 py-1.5 text-[11px] font-bold whitespace-nowrap lg:text-[13px]"
+            [class.bg-primary]="filter() === null" [class.text-white]="filter() === null"
+            [class.bg-primary-tint]="filter() !== null" [class.text-primary]="filter() !== null">
+      Tất cả
+    </button>
+    @for (group of groups; track group.date) {
+      @let active = filter() === group.date;
+      <button type="button" role="tab" [attr.aria-selected]="active" (click)="filter.set(group.date)"
+              class="rounded-card px-2.5 py-1.5 text-[11px] font-bold whitespace-nowrap lg:text-[13px]"
+              [class.bg-primary]="active" [class.text-white]="active"
+              [class.bg-primary-tint]="!active" [class.text-primary]="!active">
+        {{ group.label }}
+      </button>
+    }
+  </div>
+
+  <!-- Ảnh theo ngày -->
+  @for (group of visibleGroups(); track group.date) {
+    <section class="flex flex-col gap-3 lg:gap-4" [attr.aria-label]="group.heading">
+      <div class="flex items-center gap-3">
+        <h2 class="flex-1 text-[17px] font-bold text-ink lg:text-[22px]">{{ group.heading }}</h2>
+        <p class="text-[13px] text-muted lg:text-[15px]">{{ group.photos.length }} ảnh</p>
+      </div>
+      <ul class="grid grid-cols-2 gap-3 lg:grid-cols-3 lg:gap-6">
+        @for (photo of group.photos; track photo.id) {
+          <li>
+            <button type="button" (click)="openViewer(photo)" [attr.aria-label]="'Xem ảnh ' + photo.title"
+                    class="block w-full overflow-hidden rounded-media bg-surface">
+              <img [src]="photo.src" [alt]="photo.title" [width]="photo.width" [height]="photo.height"
+                   class="h-[150px] w-full object-cover lg:h-[240px]" />
+            </button>
+          </li>
+        }
+      </ul>
+    </section>
+  } @empty {
+    <p class="rounded-card bg-surface p-[18px] text-[13px] text-muted">Chưa có ảnh nào.</p>
+  }
+
+  <!-- Mobile: nút thêm ảnh -->
+  <a [routerLink]="['/trips', trip.id, 'album', 'upload']"
+     class="flex items-center justify-center gap-2 rounded-button bg-primary px-[18px] py-[15px] text-[15px] font-bold text-white lg:hidden">
+    <img src="icons/itinerary/plus.svg" alt="" width="20" height="20" />
+    <span>Thêm ảnh vào album</span>
+  </a>
+</div>
+
+<!-- Xem ảnh (Figma 67:3490… mobile · 67:3529… desktop) -->
+@if (viewing(); as photo) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 p-[22px]" (click)="closeViewer()">
+    <div role="dialog" aria-modal="true" [attr.aria-label]="'Xem ảnh · ' + photo.title"
+         class="flex w-full max-w-[346px] flex-col gap-3 rounded-card bg-surface p-4 lg:max-w-[680px]"
+         (click)="$event.stopPropagation()">
+      <img [src]="photo.src" [alt]="photo.title" [width]="photo.width" [height]="photo.height"
+           class="h-[220px] w-full rounded-media object-cover lg:h-[432px]" />
+      <p class="text-[13px] text-muted">{{ caption(photo) }}</p>
+      <button type="button" (click)="closeViewer()" autofocus
+              class="flex h-[42px] items-center justify-center rounded-button bg-primary-tint text-[13px] font-bold text-primary">
+        Đóng ảnh
+      </button>
+    </div>
+  </div>
+}

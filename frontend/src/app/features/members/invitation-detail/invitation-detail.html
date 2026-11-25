@@ -1,0 +1,61 @@
+<!-- Figma: Nội dung 2:50 (mobile) · Nội dung desktop 46:460 -->
+
+<!-- Desktop: đầu trang (46:461) -->
+<header class="mb-6 hidden flex-col gap-1.5 lg:flex">
+  <h1 class="text-[32px] font-bold text-ink">Chi tiết lời mời</h1>
+  <p class="text-sm whitespace-pre text-muted">{{ subtitle() }}</p>
+</header>
+
+<div class="grid grid-cols-1 items-start gap-[18px] lg:grid-cols-[616fr_488fr] lg:gap-6">
+  <!-- ============ Chuyến đi được mời (46:1821) ============ -->
+  <section class="flex flex-col gap-[18px] lg:gap-5" aria-labelledby="invite-trip-title">
+    @if (trip().coverImage; as cover) {
+      <img
+        [src]="cover"
+        [alt]="'Ảnh hành trình ' + destination()"
+        width="616"
+        height="370"
+        class="h-[200px] w-full rounded-media object-cover lg:h-[370px]"
+      />
+    }
+    <span
+      class="self-start rounded-card bg-primary-soft px-2.5 py-1.5 text-[11px] font-bold whitespace-nowrap text-primary uppercase lg:text-[13px]"
+    >
+      Lời mời từ {{ inviterName() }}
+    </span>
+    <h2 id="invite-trip-title" class="text-[28px] font-bold text-ink lg:text-[32px]">{{ trip().title }}</h2>
+    <p class="text-[13px] text-muted lg:text-[15px]">{{ invitation().message }}</p>
+  </section>
+
+  <!-- ============ Thông tin và phản hồi (46:1822) ============ -->
+  <div class="flex flex-col gap-[18px] lg:gap-5">
+    <dl class="flex flex-col gap-3 rounded-card bg-surface p-[18px] lg:gap-4 lg:p-6">
+      @for (item of details(); track item.label) {
+        <div class="flex items-center gap-3 text-[13px] lg:text-[15px]">
+          <dt class="flex-1 text-muted">{{ item.label }}</dt>
+          <dd class="flex-1 text-right text-sm font-semibold text-ink lg:text-[15px]">{{ item.value }}</dd>
+        </div>
+      }
+    </dl>
+
+    <button
+      type="button"
+      (click)="accept()"
+      [disabled]="pending() !== null"
+      class="flex w-full items-center justify-center gap-2 rounded-button bg-primary px-[18px] py-[15px] text-[15px] font-bold text-white hover:opacity-90 disabled:opacity-70"
+    >
+      <img src="icons/members/check-white.svg" alt="" width="20" height="20" />
+      Chấp nhận lời mời
+    </button>
+    <button
+      type="button"
+      (click)="decline()"
+      [disabled]="pending() !== null"
+      class="w-full rounded-button bg-primary-soft px-[18px] py-[15px] text-[15px] font-bold text-primary hover:bg-primary-tint disabled:opacity-70"
+    >
+      Từ chối
+    </button>
+
+    <p class="text-center text-[11px] text-muted lg:text-[13px]">Bạn chỉ tham gia sau khi chấp nhận lời mời.</p>
+  </div>
+</div>

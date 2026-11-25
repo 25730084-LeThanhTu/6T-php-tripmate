@@ -1,0 +1,73 @@
+<div class="flex flex-col gap-[18px] lg:gap-6">
+  <!-- Desktop: đầu trang (Figma 46:1306) -->
+  <div class="hidden flex-col gap-1.5 lg:flex">
+    <h1 class="text-[32px] font-bold text-ink">Thêm ảnh</h1>
+    <p class="text-sm whitespace-pre text-muted">{{ trip.title }}  ·  {{ dateRange }}</p>
+  </div>
+
+  <h1 class="text-[28px] font-bold text-ink lg:hidden">Thêm một chút kỷ niệm</h1>
+  <p class="text-[13px] text-muted lg:text-[15px]" aria-live="polite">Đã chọn {{ count() }} ảnh từ thiết bị của bạn.</p>
+
+  <div class="flex flex-col gap-[18px] lg:flex-row lg:items-start lg:gap-6">
+    <!-- Ảnh được chọn (Figma 2:1317 / 46:2444) -->
+    <div class="flex flex-col gap-[18px] rounded-card transition-colors lg:min-w-0 lg:flex-[704] lg:gap-5 lg:bg-surface lg:p-6"
+         [class]="dragging() ? 'lg:outline-2 lg:outline-dashed lg:outline-primary' : ''"
+         (dragover)="onDragOver($event)" (dragleave)="dragging.set(false)" (drop)="onDrop($event)">
+      @if (count()) {
+        <ul class="grid grid-cols-3 gap-2.5">
+          @for (photo of selected(); track photo.id) {
+            <li class="flex min-w-0 flex-col gap-2">
+              <button type="button" (click)="remove(photo)" [attr.aria-label]="'Bỏ chọn ảnh ' + photo.name"
+                      class="block overflow-hidden rounded-media">
+                <img [src]="photo.src" [alt]="photo.name" width="212" height="210"
+                     class="h-[125px] w-full object-cover lg:h-[210px]" />
+              </button>
+              <p class="text-[11px] font-bold whitespace-pre text-primary lg:text-[13px]">Đã chọn  ✓</p>
+            </li>
+          }
+        </ul>
+      }
+
+      <label class="flex cursor-pointer items-center justify-center gap-2 rounded-button bg-primary-tint px-[18px] py-[15px] text-[15px] font-bold text-primary focus-within:outline-2 focus-within:outline-primary">
+        <img src="icons/image.svg" alt="" width="20" height="20" />
+        <span>Chọn thêm ảnh</span>
+        <input type="file" multiple accept="image/*" class="sr-only" (change)="onFilesPicked($event)" />
+      </label>
+
+      <p class="hidden text-sm text-muted lg:block">Kéo thả thêm ảnh từ máy tính hoặc chọn ảnh từ thiết bị.</p>
+    </div>
+
+    <!-- Thông tin ảnh (Figma 46:2445) -->
+    <div class="flex flex-col gap-[18px] lg:min-w-0 lg:flex-[400] lg:gap-5">
+      <div class="flex flex-col gap-[7px]">
+        <label for="photo-date" class="text-xs font-semibold text-muted lg:text-[13px]">Ngày chụp</label>
+        <select id="photo-date" [(ngModel)]="takenDate"
+                class="h-12 w-full rounded-input border border-line bg-surface px-4 text-[15px] text-ink outline-none focus:border-primary lg:h-[49px]">
+          @for (day of days; track day.date) {
+            <option [value]="day.date">{{ day.optionLabel }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="flex flex-col gap-[7px]">
+        <label for="photo-message" class="text-xs font-semibold text-muted lg:text-[13px]">Lời nhắn cho cả nhóm</label>
+        <input id="photo-message" type="text" [(ngModel)]="message"
+               class="h-12 w-full rounded-input border border-line bg-surface px-4 text-[15px] text-ink outline-none focus:border-primary lg:h-[49px]" />
+      </div>
+
+      <!-- Sắp xếp theo ngày (Figma 2:1339 / 46:2469) -->
+      <div class="flex flex-col gap-3 rounded-card bg-surface p-[18px] lg:gap-4 lg:p-6">
+        <img src="icons/calendar.svg" alt="" width="22" height="22" />
+        <p class="text-base font-bold text-ink">Kỷ niệm luôn đúng chỗ</p>
+        <p class="text-[13px] text-muted lg:text-[15px]">TripMate lấy ngày chụp từ ảnh. Bạn có thể chỉnh lại ngày trước khi tải lên.</p>
+      </div>
+
+      <button type="button" (click)="upload()" [disabled]="!count() || uploading()"
+              class="flex items-center justify-center gap-2 rounded-button bg-primary px-[18px] py-[15px] text-[15px] font-bold text-white disabled:opacity-50">
+        {{ uploading() ? 'Đang tải lên…' : 'Tải lên ' + count() + ' ảnh' }}
+      </button>
+
+      <p class="text-[11px] text-muted lg:text-[13px]">Ảnh được chia sẻ với tất cả thành viên chuyến đi.</p>
+    </div>
+  </div>
+</div>

@@ -22,10 +22,20 @@
 
   <!-- Biểu mẫu tài khoản (Figma 46:4 / 2:5) -->
   <main class="flex min-w-0 flex-1 flex-col lg:items-center lg:justify-center lg:px-24 lg:py-16">
-    <!-- Mobile: header logo (Figma 2:4) -->
-    <header class="flex min-h-[76px] items-center px-[22px] pt-4 pb-[18px] lg:hidden">
-      <img src="images/logo-tripmate.png" alt="" class="h-8 w-12 object-contain" />
-      <span class="text-xl font-bold text-primary">TripMate</span>
+    <!-- Mobile: header logo (Figma 2:4) hoặc quay lại + tiêu đề (Figma 2:9, 2:14) -->
+    <header class="flex min-h-[76px] items-center gap-2 px-[22px] pt-4 pb-[18px] lg:hidden">
+      @if (mobileTitle(); as title) {
+        <a routerLink="/auth/login" aria-label="Quay lại đăng nhập">
+          <img src="icons/back.svg" alt="" width="22" height="22" />
+        </a>
+        <p class="flex-1 truncate text-xl font-bold text-primary">{{ title }}</p>
+        <button type="button" aria-label="Tùy chọn">
+          <img src="icons/more.svg" alt="" width="22" height="22" />
+        </button>
+      } @else {
+        <img src="images/logo-tripmate.png" alt="" class="h-8 w-12 object-contain" />
+        <span class="text-xl font-bold text-primary">TripMate</span>
+      }
     </header>
 
     <div class="w-full px-[22px] pt-1 pb-6 lg:w-[480px] lg:p-0">

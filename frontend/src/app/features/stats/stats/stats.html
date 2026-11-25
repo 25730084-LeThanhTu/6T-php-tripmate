@@ -1,0 +1,150 @@
+@let t = trip();
+<div class="flex flex-col gap-[18px] lg:gap-6">
+  <!-- Đầu trang – desktop (Figma 46:1176) -->
+  <header class="hidden items-center gap-6 lg:flex">
+    <div class="flex flex-1 flex-col gap-1.5">
+      <h1 class="text-[32px] font-bold text-ink">Thống kê</h1>
+      <p class="text-sm whitespace-pre text-muted">{{ t.title }}  ·  {{ dates() }}</p>
+    </div>
+    <button type="button" (click)="exportReport()"
+            class="flex w-[250px] items-center justify-center gap-2 self-stretch rounded-button bg-primary-soft px-[18px] text-[15px] font-bold text-primary">
+      <img src="icons/download.svg" alt="" width="20" height="20" />
+      <span>Xuất báo cáo · CSV / PDF</span>
+    </button>
+  </header>
+
+  <!-- Đầu trang – mobile (Figma 2:1202, 2:1203) -->
+  <header class="flex flex-col gap-[18px] lg:hidden">
+    <h1 class="text-[28px] font-bold text-ink">Một chuyến đi, rõ từng đồng</h1>
+    <p class="text-[13px] whitespace-pre-wrap text-muted">{{ dates() }}  ·  Tất cả thành viên</p>
+  </header>
+
+  @if (exported()) {
+    <p class="rounded-card bg-primary-soft px-[18px] py-3 text-[13px] font-semibold text-primary lg:px-6" role="status">
+      Báo cáo CSV / PDF đã sẵn sàng để tải xuống.
+    </p>
+  }
+
+  <!-- Chỉ số (Figma 2:1204 / 46:2347) -->
+  <div class="flex flex-col gap-[18px] lg:grid lg:grid-cols-3 lg:gap-6">
+    <section class="flex flex-col gap-3 rounded-card bg-primary p-[18px] text-white lg:gap-5 lg:p-6" aria-label="Dự kiến so với thực tế">
+      <span class="text-[11px] font-bold lg:text-xs">
+        <span class="lg:hidden">TỔNG CHI THỰC TẾ</span>
+        <span class="hidden lg:inline">CHI THỰC TẾ</span>
+      </span>
+      <span class="text-[30px] font-bold lg:text-[32px]">{{ formatVnd(actual()) }}</span>
+      <span class="text-xs lg:text-[13px]">
+        <span class="lg:hidden">Dự kiến {{ formatVnd(planned()) }} · Còn {{ formatVnd(remaining()) }}</span>
+        <span class="hidden lg:inline">Ngân sách dự kiến {{ formatVnd(planned()) }}</span>
+      </span>
+    </section>
+
+    <section class="hidden flex-col gap-5 rounded-card bg-surface p-6 lg:flex">
+      <h2 class="text-xs font-bold text-muted">NGÂN SÁCH CÒN LẠI</h2>
+      <p class="text-[32px] font-bold text-ink">{{ formatVnd(remaining()) }}</p>
+      <p class="text-[13px] text-muted">{{ usedPercent() }}% đã được sử dụng</p>
+    </section>
+
+    <section class="hidden flex-col gap-5 rounded-card bg-surface p-6 lg:flex">
+      <h2 class="text-xs font-bold text-muted">BÌNH QUÂN MỖI NGƯỜI</h2>
+      <p class="text-[32px] font-bold text-ink">{{ formatVnd(perMember()) }}</p>
+      <p class="text-[13px] text-muted">{{ t.memberCount }} thành viên cùng chia sẻ</p>
+    </section>
+  </div>
+
+  <!-- Báo cáo theo (Figma 2:1208 / 46:2360) -->
+  <div class="flex flex-wrap gap-[7px]" role="group" aria-label="Báo cáo theo">
+    @for (v of reportViews; track v.key) {
+      <button type="button"
+              class="rounded-card px-2.5 py-1.5 text-[11px] font-bold whitespace-nowrap lg:text-[13px]"
+              [class.bg-primary]="view() === v.key" [class.text-white]="view() === v.key"
+              [class.bg-primary-tint]="view() !== v.key" [class.text-primary]="view() !== v.key"
+              [attr.aria-pressed]="view() === v.key"
+              (click)="selectView(v.key, v.key === 'category' ? catSec : v.key === 'day' ? daySec : memSec)">
+        {{ v.label }}
+      </button>
+    }
+  </div>
+
+  <!-- Biểu đồ phân tích (Figma 46:2367) -->
+  <div class="flex flex-col gap-[18px] lg:grid lg:grid-cols-2 lg:items-start lg:gap-6">
+    <!-- Cơ cấu chi tiêu (Figma 2:1215 / 46:2368) -->
+    <section #catSec class="flex scroll-mt-4 flex-col gap-5" aria-labelledby="stats-category-title">
+      <h2 id="stats-category-title" class="sr-only text-xl font-bold text-ink lg:not-sr-only">Cơ cấu chi tiêu theo hạng mục</h2>
+      <figure class="flex items-center gap-3 rounded-card bg-surface p-[18px] lg:p-6"
+              [class.ring-2]="view() === 'category'" [class.ring-primary-soft]="view() === 'category'">
+        <svg viewBox="0 0 42 42" class="size-32 shrink-0 lg:size-48" role="img"
+             [attr.aria-label]="'Cơ cấu chi tiêu theo ' + slices().length + ' hạng mục: ' + donutSummary()">
+          <circle cx="21" cy="21" r="15.915" fill="none" class="stroke-line" stroke-width="6" />
+          @for (s of slices(); track s.label) {
+            <circle cx="21" cy="21" r="15.915" fill="none" stroke-width="6"
+                    [attr.class]="s.color.stroke" [attr.stroke-dasharray]="s.dash" [attr.stroke-dashoffset]="s.offset" />
+          }
+        </svg>
+        <figcaption class="flex min-w-0 flex-1 flex-col gap-[9px]">
+          @for (s of slices(); track s.label) {
+            <span class="flex items-center gap-2 text-[11px] text-ink lg:text-[13px]">
+              <span class="size-2 shrink-0 rounded-full" [class]="s.color.fill" aria-hidden="true"></span>
+              {{ s.label }} · {{ formatVnd(s.amount) }}
+            </span>
+          }
+        </figcaption>
+      </figure>
+    </section>
+
+    <!-- Chi theo ngày (Figma 2:1227 + 2:1230 / 46:2369) -->
+    <section #daySec class="flex scroll-mt-4 flex-col gap-[18px] lg:gap-5" aria-labelledby="stats-day-title">
+      <div class="flex items-center gap-3">
+        <h2 id="stats-day-title" class="flex-1 text-[13px] text-muted lg:text-[15px]">Chi theo ngày</h2>
+        <span class="flex-1 text-right text-sm font-semibold text-ink lg:text-[15px]">VND</span>
+      </div>
+      <ul class="flex flex-col gap-3 rounded-card bg-surface p-[18px] lg:gap-4 lg:p-6"
+          [class.ring-2]="view() === 'day'" [class.ring-primary-soft]="view() === 'day'">
+        @for (d of days(); track d.label) {
+          <li class="flex flex-col gap-3 lg:gap-4">
+            <div class="flex items-center gap-3">
+              <span class="flex-1 text-[13px] text-ink lg:text-[15px]">{{ d.label }}</span>
+              <span class="flex-1 text-right text-sm font-semibold text-ink lg:text-[15px]">{{ formatNumber(d.amount) }}</span>
+            </div>
+            @if (d.amount > 0) {
+              <span class="block h-[5px] w-full" aria-hidden="true">
+                <span class="block h-full rounded-full bg-primary" [style.width.%]="dayPercent(d.amount)"></span>
+              </span>
+            }
+          </li>
+        }
+      </ul>
+    </section>
+  </div>
+
+  <!-- Bình quân / thành viên – mobile (Figma 2:1244) -->
+  <div class="flex items-center gap-3 lg:hidden">
+    <span class="flex-1 text-[13px] text-muted">Bình quân / thành viên</span>
+    <span class="flex-1 text-right text-sm font-semibold text-ink">{{ formatVnd(perMember()) }}</span>
+  </div>
+
+  <!-- Ứng trước theo thành viên (Figma 2:1474 / 46:2400) -->
+  <section #memSec class="flex scroll-mt-4 flex-col gap-2.5 rounded-card bg-surface p-[18px] lg:gap-4 lg:p-6"
+           [class.ring-2]="view() === 'member'" [class.ring-primary-soft]="view() === 'member'"
+           aria-labelledby="stats-member-title">
+    <h2 id="stats-member-title" class="text-sm font-bold text-ink lg:text-xl">Ứng trước theo thành viên</h2>
+    <ul class="flex flex-col gap-2.5 lg:gap-4">
+      @for (m of members(); track m.label) {
+        <li class="flex items-center text-[13px] text-ink lg:py-[9px] lg:text-[15px]">
+          <span class="flex-1">{{ m.label }}</span>
+          <span class="flex-1 text-right font-semibold">{{ formatVnd(m.amount) }}</span>
+        </li>
+      }
+    </ul>
+  </section>
+
+  <!-- Xuất báo cáo – mobile (Figma 2:1247) -->
+  <button type="button" (click)="exportReport()"
+          class="flex items-center justify-center gap-2 rounded-button bg-primary-soft px-[18px] py-[15px] text-[15px] font-bold text-primary lg:hidden">
+    <img src="icons/download.svg" alt="" width="20" height="20" />
+    <span>Xuất báo cáo · CSV / PDF</span>
+  </button>
+
+  <!-- Dự kiến so với thực tế – desktop (Figma 46:2414) -->
+  <p class="hidden text-sm whitespace-pre text-muted lg:block">Dự kiến {{ formatVnd(planned()) }}  ·  Thực tế {{ formatVnd(actual()) }}  ·  Còn lại {{ 100 - usedPercent() }}% ngân sách.</p>
+</div>

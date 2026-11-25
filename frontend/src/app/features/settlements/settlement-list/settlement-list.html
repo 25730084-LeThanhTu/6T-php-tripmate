@@ -1,0 +1,73 @@
+<!-- Đầu trang: mobile 2:1097 · desktop 46:1046 -->
+<h1 class="text-[28px] font-bold text-ink lg:hidden">Ai cần trả ai?</h1>
+<header class="hidden flex-col gap-1.5 lg:flex">
+  <h1 class="text-[32px] font-bold text-ink">Chia tiền</h1>
+  <p class="text-sm whitespace-pre text-muted">{{ tripSubtitle() }}</p>
+</header>
+
+<p class="text-[13px] text-muted lg:text-[15px]">{{ summary() }}</p>
+
+<div class="flex flex-col gap-[18px] lg:grid lg:grid-cols-[minmax(0,480fr)_minmax(0,624fr)] lg:items-start lg:gap-6">
+  <!-- Số dư cá nhân (46:2267) -->
+  <section class="flex flex-col gap-[18px] lg:gap-5" aria-labelledby="balances-title">
+    <h2 id="balances-title" class="sr-only text-[21px] font-bold text-ink lg:not-sr-only">Số dư của các thành viên</h2>
+
+    <div class="flex flex-col gap-3 rounded-card bg-surface p-[18px] lg:gap-4 lg:p-6">
+      @for (row of balanceRows(); track row.memberId) {
+        <div class="flex items-center gap-3">
+          <span class="flex-1 text-[13px] text-muted lg:text-[15px]">{{ row.label }}</span>
+          <span class="flex-1 text-right text-sm font-semibold lg:text-[15px]" [class]="row.tone">{{ row.text }}</span>
+        </div>
+      }
+      <p class="text-[11px] text-muted lg:text-[13px]">Dương: được nhận · Âm: cần trả</p>
+    </div>
+
+    <p class="hidden text-[13px] text-muted lg:block">
+      Số dư chỉ cập nhật khi người nhận xác nhận. Các khoản ứng hộ đã được bù trừ.
+    </p>
+
+    <!-- Nguyên tắc bù trừ (46:2305) – chỉ có trên desktop -->
+    <div class="hidden flex-col gap-5 rounded-card bg-primary-soft p-6 lg:flex">
+      <p class="text-lg font-bold text-primary">Ít lượt chuyển hơn, dễ đối soát hơn</p>
+      <p class="text-[15px] text-muted">Các khoản ứng hộ được bù trừ trước khi đưa ra gợi ý chuyển tiền.</p>
+    </div>
+  </section>
+
+  <!-- Các giao dịch đề xuất (46:2268) -->
+  <section class="flex flex-col gap-[18px] lg:gap-5" aria-labelledby="transfers-title">
+    <div class="flex items-center gap-3">
+      <h2 id="transfers-title" class="flex-1 text-[13px] font-normal text-muted lg:text-[15px]">Gợi ý thanh toán</h2>
+      <p class="flex-1 text-right text-sm font-semibold text-ink lg:text-[15px]">{{ transferCountText() }}</p>
+    </div>
+
+    @for (t of transfers(); track t.fromMemberId + '-' + t.toMemberId) {
+      <article class="flex flex-col items-start gap-3 rounded-card p-[18px] lg:gap-4 lg:p-6"
+               [class.bg-primary-soft]="t.awaitingMe"
+               [class.bg-surface]="!t.awaitingMe">
+        <div class="flex w-full items-center gap-3">
+          <p class="flex-1 text-[13px] text-muted lg:text-[15px]">{{ t.label }}</p>
+          <p class="flex-1 text-right text-sm font-semibold text-ink lg:text-[15px]">{{ t.amountText }}</p>
+        </div>
+        <span class="rounded-card bg-primary-soft px-2.5 py-1.5 text-[11px] font-bold whitespace-nowrap text-primary lg:text-[13px]">{{ t.statusLabel }}</span>
+        @if (t.sentNote) {
+          <p class="text-xs text-muted lg:text-[13px]">{{ t.sentNote }}</p>
+        }
+        @if (t.settlementId !== null && t.status === 'SENT' && t.awaitingMe) {
+          <a [routerLink]="['/trips', tripId(), 'settlements', t.settlementId]"
+             class="flex w-full items-center justify-center gap-2 rounded-button bg-primary px-[18px] py-[15px] text-[15px] font-bold text-white">
+            <img src="icons/settlements/check-white.svg" alt="" width="20" height="20" />
+            <span>Xem &amp; xác nhận</span>
+          </a>
+        }
+      </article>
+    } @empty {
+      <p class="rounded-card bg-surface p-[18px] text-[13px] text-muted lg:p-6 lg:text-[15px]">
+        Mọi người đã cân bằng, không cần chuyển tiền.
+      </p>
+    }
+
+    <p class="text-xs text-muted lg:hidden">
+      Số dư chỉ cập nhật khi người nhận xác nhận. Các khoản ứng hộ đã được bù trừ.
+    </p>
+  </section>
+</div>

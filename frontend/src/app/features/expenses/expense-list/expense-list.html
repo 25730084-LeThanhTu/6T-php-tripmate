@@ -1,0 +1,232 @@
+<!-- Figma: Nội dung 2:75 (mobile) · Nội dung desktop 46:785 -->
+
+<!-- ============ Đầu trang ============ -->
+<!-- Mobile: khẩu hiệu + tên chuyến đi (2:873, 2:874) -->
+<div class="flex flex-col gap-[18px] lg:hidden">
+  <h1 class="text-[28px] font-bold text-ink">Chi rõ ràng, vui trọn vẹn</h1>
+  <p class="text-[13px] text-muted">{{ tripTitle() }}</p>
+</div>
+
+<!-- Desktop: tiêu đề + nút thêm (46:786) -->
+<div class="hidden items-stretch gap-6 lg:flex">
+  <div class="flex min-w-0 flex-1 flex-col gap-1.5">
+    <h1 class="text-[32px] font-bold text-ink">Chi tiêu</h1>
+    <p class="text-sm text-muted whitespace-pre">{{ tripTitle() }}  ·  {{ tripDates() }}</p>
+  </div>
+  <a
+    [routerLink]="newLink()"
+  (click)="startNew()"
+    class="flex w-[200px] shrink-0 items-center justify-center gap-2 rounded-button bg-primary px-[18px] text-[15px] font-bold text-white hover:opacity-90"
+  >
+    <img src="icons/expenses/plus.svg" alt="" width="20" height="20" />
+    Thêm chi tiêu
+  </a>
+</div>
+
+<!-- ============ Tóm tắt ============ -->
+<!-- Mobile: một thẻ (2:875) -->
+<section class="flex flex-col gap-3 rounded-card bg-surface p-[18px] lg:hidden" aria-label="Tổng chi tiêu">
+  <p class="text-[11px] font-bold text-muted">TỔNG CHI CỦA NHÓM</p>
+  <p class="text-[30px] font-bold text-primary">{{ vnd(total()) }}</p>
+  <p class="text-xs text-muted whitespace-pre">{{ expenses().length }} khoản chi  ·  Trung bình {{ vnd(perPerson()) }} / người</p>
+</section>
+
+<!-- Desktop: ba thẻ (46:2066) -->
+<section class="hidden grid-cols-3 gap-6 lg:grid" aria-label="Tóm tắt chi tiêu">
+  <div class="flex flex-col gap-5 rounded-card bg-surface p-6">
+    <p class="text-xs font-bold text-muted">TỔNG CHI CỦA NHÓM</p>
+    <p class="text-[32px] font-bold text-primary">{{ vnd(total()) }}</p>
+    <p class="text-[13px] text-muted">{{ tripTitle() }}</p>
+  </div>
+  <div class="flex flex-col gap-5 rounded-card bg-surface p-6">
+    <p class="text-xs font-bold text-muted">KHOẢN CHI ĐÃ GHI NHẬN</p>
+    <p class="text-[32px] font-bold text-ink">{{ expenses().length }} khoản</p>
+    <p class="text-[13px] text-muted">{{ recordedRange() }}</p>
+  </div>
+  <div class="flex flex-col gap-5 rounded-card bg-surface p-6">
+    <p class="text-xs font-bold text-muted">TRUNG BÌNH MỖI NGƯỜI</p>
+    <p class="text-[32px] font-bold text-ink">{{ vnd(perPerson()) }}</p>
+    <p class="text-[13px] text-muted">Chia đều cho {{ memberCount() }} thành viên</p>
+  </div>
+</section>
+
+<!-- ============ Bộ lọc (2:879 / 46:2079) ============ -->
+<div class="relative flex flex-wrap items-center gap-[7px]" role="group" aria-label="Lọc khoản chi">
+  <button
+    type="button"
+    (click)="showAll()"
+    [attr.aria-pressed]="isAll()"
+    class="rounded-card px-2.5 py-1.5 text-[11px] font-semibold lg:text-[13px]"
+    [class]="isAll() ? 'bg-primary text-white' : 'bg-primary-tint text-primary'"
+  >
+    Tất cả
+  </button>
+
+  <div class="relative">
+    <button
+      type="button"
+      (click)="toggleMenu('category')"
+      [attr.aria-expanded]="openMenu() === 'category'"
+      aria-haspopup="listbox"
+      class="rounded-card px-2.5 py-1.5 text-[11px] font-semibold whitespace-pre lg:text-[13px]"
+      [class]="categoryFilter() !== null ? 'bg-primary text-white' : 'bg-primary-tint text-primary'"
+    >{{ categoryChipLabel() }}  ⌄</button>
+    @if (openMenu() === 'category') {
+      <ul
+        role="listbox"
+        aria-label="Hạng mục"
+        class="absolute top-full left-0 z-20 mt-1.5 flex w-52 flex-col rounded-panel border border-line bg-surface p-1.5 shadow-lg"
+      >
+        <li>
+          <button type="button" role="option" [attr.aria-selected]="categoryFilter() === null" (click)="pickCategory(null)"
+            class="w-full rounded-item px-3 py-2 text-left text-[13px] hover:bg-primary-soft"
+            [class.font-bold]="categoryFilter() === null" [class.text-primary]="categoryFilter() === null">
+            Tất cả hạng mục
+          </button>
+        </li>
+        @for (c of categories; track c.id) {
+          <li>
+            <button type="button" role="option" [attr.aria-selected]="categoryFilter() === c.id" (click)="pickCategory(c.id)"
+              class="w-full rounded-item px-3 py-2 text-left text-[13px] hover:bg-primary-soft"
+              [class.font-bold]="categoryFilter() === c.id" [class.text-primary]="categoryFilter() === c.id">
+              {{ c.name }}
+            </button>
+          </li>
+        }
+      </ul>
+    }
+  </div>
+
+  <div class="relative">
+    <button
+      type="button"
+      (click)="toggleMenu('payer')"
+      [attr.aria-expanded]="openMenu() === 'payer'"
+      aria-haspopup="listbox"
+      class="rounded-card px-2.5 py-1.5 text-[11px] font-semibold whitespace-pre lg:text-[13px]"
+      [class]="payerFilter() !== null ? 'bg-primary text-white' : 'bg-primary-tint text-primary'"
+    >{{ payerChipLabel() }}  ⌄</button>
+    @if (openMenu() === 'payer') {
+      <ul
+        role="listbox"
+        aria-label="Người trả"
+        class="absolute top-full left-0 z-20 mt-1.5 flex w-52 flex-col rounded-panel border border-line bg-surface p-1.5 shadow-lg"
+      >
+        <li>
+          <button type="button" role="option" [attr.aria-selected]="payerFilter() === null" (click)="pickPayer(null)"
+            class="w-full rounded-item px-3 py-2 text-left text-[13px] hover:bg-primary-soft"
+            [class.font-bold]="payerFilter() === null" [class.text-primary]="payerFilter() === null">
+            Tất cả người trả
+          </button>
+        </li>
+        @for (p of payerOptions(); track p.id) {
+          <li>
+            <button type="button" role="option" [attr.aria-selected]="payerFilter() === p.id" (click)="pickPayer(p.id)"
+              class="w-full rounded-item px-3 py-2 text-left text-[13px] hover:bg-primary-soft"
+              [class.font-bold]="payerFilter() === p.id" [class.text-primary]="payerFilter() === p.id">
+              {{ p.label }}
+            </button>
+          </li>
+        }
+        <li>
+          <button type="button" role="option" [attr.aria-selected]="payerFilter() === 'fund'" (click)="pickPayer('fund')"
+            class="w-full rounded-item px-3 py-2 text-left text-[13px] hover:bg-primary-soft"
+            [class.font-bold]="payerFilter() === 'fund'" [class.text-primary]="payerFilter() === 'fund'">
+            Quỹ chung
+          </button>
+        </li>
+      </ul>
+    }
+  </div>
+</div>
+
+@if (!filtered().length) {
+  <div class="flex flex-col items-center gap-3 rounded-card bg-surface p-6 text-center">
+    <p class="text-sm font-semibold text-ink">Không có khoản chi phù hợp</p>
+    <button type="button" (click)="showAll()" class="text-[13px] font-bold text-primary hover:underline">
+      Xem tất cả khoản chi
+    </button>
+  </div>
+}
+
+<!-- ============ Mobile: theo ngày (2:886 → 2:902) ============ -->
+@for (g of groups(); track g.date) {
+  <section class="flex flex-col gap-[18px] lg:hidden" [attr.aria-label]="g.label">
+    <div class="flex items-center gap-3">
+      <h2 class="flex-1 text-[13px] font-semibold text-muted">{{ g.label }}</h2>
+      <p class="flex-1 text-right text-sm font-bold text-ink">{{ vnd(g.total) }}</p>
+    </div>
+    @for (e of g.items; track e.id) {
+      <a [routerLink]="detailLink(e)" class="flex flex-col gap-3 rounded-card bg-surface p-[18px] hover:ring-1 hover:ring-primary">
+        <span class="flex items-center gap-3">
+          <span class="min-w-0 flex-1 truncate text-[13px] font-semibold text-ink">{{ e.title }}</span>
+          <span class="flex-1 text-right text-sm font-bold text-primary">{{ vnd(e.amount) }}</span>
+        </span>
+        <span class="text-xs text-muted">{{ mobileMeta(e) }}</span>
+      </a>
+    }
+  </section>
+}
+
+<!-- Mobile: thêm chi tiêu (2:911) -->
+<a
+  [routerLink]="newLink()"
+  (click)="startNew()"
+  class="flex items-center justify-center gap-2 rounded-button bg-primary px-[18px] py-[15px] text-[15px] font-bold text-white hover:opacity-90 lg:hidden"
+>
+  <img src="icons/expenses/plus.svg" alt="" width="20" height="20" />
+  Thêm chi tiêu
+</a>
+
+<!-- ============ Desktop: bảng chi tiêu (46:2086) ============ -->
+@if (filtered().length) {
+  <section class="hidden rounded-card bg-surface p-6 lg:block" aria-label="Danh sách chi tiêu">
+    <table class="w-full table-fixed border-collapse text-left">
+      <colgroup>
+        <col class="w-[25%]" />
+        <col class="w-[13.5%]" />
+        <col class="w-[12.6%]" />
+        <col class="w-[12.6%]" />
+        <col class="w-[17.2%]" />
+        <col />
+      </colgroup>
+      <thead>
+        <tr class="text-[11px] font-bold text-muted">
+          <th scope="col" class="rounded-l-panel bg-canvas px-3.5 py-3.5 font-bold">KHOẢN CHI</th>
+          <th scope="col" class="bg-canvas px-2 py-3.5 font-bold">HẠNG MỤC</th>
+          <th scope="col" class="bg-canvas px-2 py-3.5 font-bold">NGƯỜI TRẢ</th>
+          <th scope="col" class="bg-canvas px-2 py-3.5 font-bold">NGÀY CHI</th>
+          <th scope="col" class="bg-canvas px-2 py-3.5 font-bold">SỐ TIỀN</th>
+          <th scope="col" class="rounded-r-panel bg-canvas px-2 py-3.5 font-bold">CÁCH CHIA</th>
+        </tr>
+      </thead>
+      <tbody class="text-sm text-ink">
+        @for (e of filtered(); track e.id) {
+          <tr class="border-b border-line last:border-b-0 hover:bg-canvas">
+            <td class="truncate px-3.5 py-[22px] font-semibold">
+              <a [routerLink]="detailLink(e)" class="hover:text-primary hover:underline">{{ e.title }}</a>
+            </td>
+            <td class="truncate px-2 py-[22px]">{{ categoryName(e.categoryId) }}</td>
+            <td class="truncate px-2 py-[22px]">{{ payer(e) }}</td>
+            <td class="px-2 py-[22px]">{{ date(e.expenseDate) }}</td>
+            <td class="px-2 py-[22px] font-bold text-primary">{{ vnd(e.amount) }}</td>
+            <td class="truncate px-2 py-[22px] text-muted">{{ splitShort(e) }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Desktop: tổng hợp theo ngày (46:2122) -->
+  <div class="hidden grid-cols-2 gap-6 lg:grid">
+    @for (g of groups(); track g.date) {
+      <div class="flex items-center gap-3 text-[15px]">
+        <span class="flex-1 font-semibold text-muted">{{ g.label }}</span>
+        <span class="flex-1 text-right font-bold text-ink">{{ vnd(g.total) }}</span>
+      </div>
+    }
+  </div>
+}
+
+<!-- Desktop: ghi chú cuối (46:2129) -->
+<p class="hidden text-[13px] text-muted whitespace-pre lg:block">Hiển thị {{ filtered().length }} / {{ expenses().length }} khoản chi  ·  Mọi thay đổi được lưu trong lịch sử chỉnh sửa.</p>

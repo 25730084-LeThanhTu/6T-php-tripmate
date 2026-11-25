@@ -1,0 +1,188 @@
+<!-- Figma: Nội dung 2:85 (mobile) · Nội dung desktop 46:915 -->
+
+<!-- ============ Đầu trang ============ -->
+<div class="flex flex-col gap-[18px] lg:hidden">
+  <h1 class="text-[28px] font-bold text-ink">Chia sao cho hợp lý?</h1>
+  <p class="text-[13px] text-muted">{{ expenseLine }}</p>
+</div>
+
+<div class="hidden flex-col gap-1.5 lg:flex">
+  <h1 class="text-[32px] font-bold text-ink">Cách chia chi phí</h1>
+  <p class="text-sm text-muted whitespace-pre">{{ tripLine }}</p>
+</div>
+<p class="hidden text-[15px] font-semibold text-ink lg:block">{{ expenseLine }}</p>
+
+<!-- ============ Phương thức chia (2:978 / 46:2175) ============ -->
+<div class="flex flex-wrap gap-2" role="radiogroup" aria-label="Phương thức chia">
+  @for (m of modes; track m) {
+    <button
+      type="button"
+      role="radio"
+      [attr.aria-checked]="mode() === m"
+      (click)="setMode(m)"
+      class="rounded-card px-2.5 py-1.5 text-[11px] font-semibold lg:text-[13px]"
+      [class]="mode() === m ? 'bg-primary text-white' : 'bg-primary-tint text-primary'"
+    >
+      {{ modeLabel[m] }}
+    </button>
+  }
+</div>
+
+<div class="flex flex-col gap-[18px] lg:grid lg:grid-cols-[minmax(0,656fr)_minmax(0,448fr)] lg:items-start lg:gap-6">
+  <!-- ============ Bảng chia chi phí (2:988 / 46:2186) ============ -->
+  <div class="flex flex-col gap-[18px] lg:gap-5">
+    <section class="flex flex-col gap-3 rounded-card bg-surface p-[18px] lg:gap-4 lg:p-6" aria-label="Thành viên chia chi phí">
+      <div class="flex items-center gap-3">
+        <h2 class="flex-1 text-[13px] font-bold text-muted lg:text-[15px]">CHỌN THÀNH VIÊN</h2>
+        <button
+          type="button"
+          (click)="toggleAll()"
+          class="flex-1 text-right text-sm font-semibold text-primary hover:underline lg:text-[15px]"
+          [attr.aria-label]="allSelected() ? 'Bỏ chọn tất cả' : 'Chọn tất cả'"
+        >
+          {{ allSelected() ? 'Tất cả' : 'Chọn tất cả' }} · {{ selected().length }}/{{ members.length }}
+        </button>
+      </div>
+
+      @for (m of members; track m.id) {
+        <div class="flex min-h-5 items-center gap-3 text-sm lg:text-[15px]">
+          <label class="flex min-w-0 flex-1 cursor-pointer items-center gap-3">
+            <input
+              type="checkbox"
+              class="peer sr-only"
+              [checked]="isSelected(m.id)"
+              (change)="toggleMember(m.id)"
+            />
+            <span
+              aria-hidden="true"
+              class="flex size-[18px] shrink-0 items-center justify-center rounded-[5px] border border-line bg-surface peer-checked:border-transparent peer-focus-visible:ring-1 peer-focus-visible:ring-primary"
+            >
+              @if (isSelected(m.id)) {
+                <img src="icons/check.svg" alt="" width="18" height="18" />
+              }
+            </span>
+            <span class="truncate" [class.text-ink]="isSelected(m.id)" [class.text-muted]="!isSelected(m.id)">{{ m.label }}</span>
+          </label>
+
+          @if (isSelected(m.id)) {
+            @switch (mode()) {
+              @case ('EXACT') {
+                <span class="flex w-[150px] items-center gap-1.5 rounded-item border border-line px-2.5 py-1 focus-within:border-primary">
+                  <input
+                    type="text"
+                    inputmode="numeric"
+                    [attr.aria-label]="'Số tiền của ' + m.label"
+                    [value]="formatNumber(exact()[m.id])"
+                    (input)="setExact(m.id, $any($event.target))"
+                    placeholder="0"
+                    class="w-full min-w-0 bg-transparent text-right font-semibold text-ink outline-none"
+                  />
+                  <span class="text-muted">₫</span>
+                </span>
+              }
+              @case ('PERCENT') {
+                <span class="text-xs text-muted lg:text-[13px]">{{ vnd(shares()[m.id] ?? 0) }}</span>
+                <span class="flex w-[86px] items-center gap-1 rounded-item border border-line px-2.5 py-1 focus-within:border-primary">
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="0.01"
+                    [attr.aria-label]="'Phần trăm của ' + m.label"
+                    [value]="percent()[m.id] ?? 0"
+                    (input)="setPercent(m.id, $any($event.target).value)"
+                    class="w-full min-w-0 bg-transparent text-right font-semibold text-ink outline-none"
+                  />
+                  <span class="text-muted">%</span>
+                </span>
+              }
+              @case ('SHARES') {
+                <span class="text-xs text-muted lg:text-[13px]">{{ vnd(shares()[m.id] ?? 0) }}</span>
+                <span class="flex w-[86px] items-center gap-1 rounded-item border border-line px-2.5 py-1 focus-within:border-primary">
+                  <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    [attr.aria-label]="'Số phần của ' + m.label"
+                    [value]="shareUnits()[m.id] ?? 0"
+                    (input)="setUnits(m.id, $any($event.target).value)"
+                    class="w-full min-w-0 bg-transparent text-right font-semibold text-ink outline-none"
+                  />
+                  <span class="text-muted">phần</span>
+                </span>
+              }
+              @default {
+                <span class="flex-1 text-right font-semibold text-ink">{{ vnd(shares()[m.id] ?? 0) }}</span>
+              }
+            }
+          } @else {
+            <span class="flex-1 text-right text-muted">Không chia</span>
+          }
+        </div>
+      }
+
+      <div class="flex items-center gap-3 border-t border-line pt-3 text-sm lg:text-[15px]">
+        <span class="flex-1 font-semibold text-ink">Tổng cộng</span>
+        <span class="flex-1 text-right font-bold" [class.text-primary]="matched()" [style.color]="!matched() ? '#b3261e' : null">
+          {{ vnd(total()) }}
+        </span>
+      </div>
+
+      @if (mode() === 'EXACT' && !matched()) {
+        <button type="button" (click)="fillEqually()" class="self-start text-xs font-bold text-primary hover:underline lg:text-[13px]">
+          Chia đều lại cho {{ selected().length }} người
+        </button>
+      }
+    </section>
+
+    <!-- Mobile: các lựa chọn khác (2:1015) nằm trước nút áp dụng -->
+    <section class="flex flex-col gap-3 rounded-card bg-surface p-[18px] lg:hidden" aria-label="Các lựa chọn khác">
+      <h2 class="text-[15px] font-bold text-ink">Linh hoạt cho mọi khoản chi</h2>
+      <ul class="flex flex-col text-[13px] text-muted">
+        <li>Số tiền: nhập phần của từng người.</li>
+        <li>Phần trăm: chia theo tỉ lệ % của mỗi người.</li>
+        <li>Số phần: chia theo số phần, ví dụ 2 phần – 1 phần.</li>
+      </ul>
+    </section>
+
+    @if (showError() && error(); as err) {
+      <p role="alert" class="rounded-panel bg-surface px-[18px] py-3 text-[13px] font-medium text-danger">{{ err }}</p>
+    }
+
+    <!-- Áp dụng (2:1018 / 46:2215) -->
+    <button
+      type="button"
+      (click)="apply()"
+      class="flex items-center justify-center gap-2 rounded-button bg-primary px-[18px] py-[15px] text-[15px] font-bold text-white hover:opacity-90"
+      [class.opacity-70]="!matched()"
+    >
+      <img src="icons/expenses/check-white.svg" alt="" width="20" height="20" />
+      {{ applyLabel() }}
+    </button>
+
+    <!-- Mobile: ghi chú cuối (2:975) -->
+    <p class="text-center text-[11px] lg:hidden" [class.text-muted]="matched()" [style.color]="!matched() ? '#b3261e' : null">
+      {{ matched() ? 'Tổng phần chia phải bằng ' + vnd(amount) : error() }}
+    </p>
+  </div>
+
+  <!-- ============ Desktop: hướng dẫn cách chia (46:2187) ============ -->
+  <div class="hidden flex-col gap-5 lg:flex">
+    <section class="flex flex-col gap-4 rounded-card bg-surface p-6" aria-label="Các lựa chọn khác">
+      <h2 class="text-[15px] font-bold text-ink">Linh hoạt cho mọi khoản chi</h2>
+      <ul class="flex flex-col text-sm text-muted">
+        <li>Số tiền: nhập phần của từng người.</li>
+        <li>Phần trăm: chia theo tỉ lệ % của mỗi người.</li>
+        <li>Số phần: chia theo số phần, ví dụ 2 phần – 1 phần.</li>
+      </ul>
+    </section>
+
+    <section class="flex flex-col gap-5 rounded-card bg-surface p-6" aria-label="Đối chiếu tổng phần chia" aria-live="polite">
+      <h2 class="text-xl font-bold" [class.text-primary]="matched()" [style.color]="!matched() ? '#b3261e' : null">
+        {{ matched() ? 'Tổng phần chia đã khớp' : 'Tổng phần chia chưa khớp' }}
+      </h2>
+      <p class="text-base font-semibold text-ink">{{ formula() }}</p>
+      <p class="text-sm text-muted">{{ error() ?? 'Tổng phần chia phải bằng đúng số tiền của khoản chi.' }}</p>
+    </section>
+  </div>
+</div>

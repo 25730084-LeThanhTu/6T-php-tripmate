@@ -27,13 +27,14 @@ describe('App', () => {
     const harness = await RouterTestingHarness.create('/auth/login');
     const el = harness.routeNativeElement as HTMLElement;
     expect(el.querySelector('aside')).toBeTruthy();
-    expect(el.querySelector('app-screen-placeholder h1')?.textContent).toContain('Đăng nhập');
+    expect(el.querySelector('app-login form')).toBeTruthy();
+    expect(el.querySelector('input[type="email"]')).toBeTruthy();
   });
 
-  it('should render a trip screen inside the app shell', async () => {
-    const harness = await RouterTestingHarness.create('/trips/abc/expenses');
+  it('should render a trip screen with mock data inside the app shell', async () => {
+    const harness = await RouterTestingHarness.create('/trips/da-lat/expenses');
     const el = harness.routeNativeElement as HTMLElement;
-    expect(el.querySelector('nav')).toBeTruthy();
-    expect(el.querySelector('app-screen-placeholder h1')?.textContent).toContain('Chi tiêu');
+    expect(el.querySelector('aside nav')).toBeTruthy();
+    expect(el.querySelector('app-expense-list')?.textContent).toContain('Homestay 2 đêm');
   });
 });

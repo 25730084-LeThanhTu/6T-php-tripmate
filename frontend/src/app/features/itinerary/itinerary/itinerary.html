@@ -1,0 +1,88 @@
+<div class="flex flex-col gap-[18px] lg:gap-6">
+  <!-- Mobile: tiêu đề (Figma 67:2326) -->
+  <h1 class="text-[28px] font-bold text-ink lg:hidden">Mỗi ngày, một khám phá</h1>
+
+  <!-- Desktop: đầu trang (Figma 46:526) -->
+  <div class="hidden items-stretch gap-6 lg:flex">
+    <div class="flex min-w-0 flex-1 flex-col gap-1.5">
+      <h1 class="text-[32px] font-bold text-ink">Lịch trình</h1>
+      <p class="text-sm whitespace-pre text-muted">{{ trip().title }}  ·  {{ dateRange() }}</p>
+    </div>
+    <a [routerLink]="['/trips', trip().id, 'itinerary', 'new']" [queryParams]="{ day: selectedDay()?.date }"
+       class="flex w-[210px] items-center justify-center gap-2 rounded-button bg-primary px-[18px] py-[15px] text-[15px] font-bold text-white">
+      <img src="icons/itinerary/plus.svg" alt="" width="20" height="20" />
+      <span>Thêm hoạt động</span>
+    </a>
+  </div>
+
+  <p class="text-[13px] text-muted lg:text-[15px]">{{ trip().title }} · {{ duration() }}</p>
+
+  <!-- Chọn ngày (Figma 67:2328 / 67:2951) -->
+  <div class="flex flex-wrap items-center gap-2" role="tablist" aria-label="Chọn ngày">
+    @for (day of days(); track day.date) {
+      @let active = day.date === selectedDay()?.date;
+      <button type="button" role="tab" [attr.aria-selected]="active" (click)="selectDay(day.date)"
+              class="rounded-card px-2.5 py-1.5 text-[11px] font-bold whitespace-nowrap lg:text-[13px]"
+              [class.bg-primary]="active" [class.text-white]="active"
+              [class.bg-primary-tint]="!active" [class.text-primary]="!active">
+        {{ day.chipLabel }}
+      </button>
+    }
+  </div>
+
+  @if (selectedDay(); as day) {
+    <div class="flex items-center gap-3">
+      <p class="flex-1 text-[13px] text-muted lg:text-[15px]">{{ day.heading }}</p>
+      <p class="flex-1 text-right text-sm font-semibold text-ink lg:text-[15px]">{{ activities().length }} hoạt động</p>
+    </div>
+
+    <!-- Điểm dừng trong ngày (Figma 67:2338 / 67:2961) -->
+    @if (activities().length) {
+      <ul class="flex flex-col gap-[18px] lg:flex-row lg:gap-6">
+        @for (item of activities(); track item.id) {
+          <li class="flex flex-col gap-3 rounded-card p-[18px] lg:flex-1 lg:gap-4 lg:p-6"
+              [class.bg-surface]="item.status === 'DONE'" [class.bg-primary-soft]="item.status === 'UPCOMING'">
+            <div class="flex items-center gap-3">
+              <p class="flex-1 text-xs font-bold text-primary lg:text-[13px]">{{ item.startTime }} – {{ item.endTime }}</p>
+              <span class="rounded-card bg-primary-soft px-2.5 py-1.5 text-[11px] font-bold whitespace-nowrap text-primary lg:text-[13px]">
+                {{ statusLabel[item.status] }}
+              </span>
+            </div>
+            <h2 class="text-[17px] font-bold text-ink">{{ item.title }}</h2>
+            <p class="text-[13px] text-muted lg:text-[15px]">{{ item.place }}</p>
+            <div class="flex items-center gap-3">
+              <p class="flex-1 text-[13px] text-muted lg:text-[15px]">Chi phí dự kiến</p>
+              <p class="flex-1 text-right text-sm font-semibold text-ink lg:text-[15px]">{{ cost(item.estimatedCost) }}</p>
+            </div>
+          </li>
+        }
+      </ul>
+
+      <!-- Desktop: tóm tắt hành trình trong ngày (Figma 67:2995) -->
+      <div class="hidden gap-6 lg:flex">
+        <img src="images/itinerary/da-lat-day.jpg" alt="Đà Lạt · Ảnh chuyến đi" width="1200" height="896"
+             class="h-[210px] min-w-0 flex-1 rounded-media object-cover" />
+        <div class="flex min-w-0 flex-1 flex-col gap-5 rounded-card bg-surface p-6">
+          <h2 class="text-[22px] font-bold text-ink">{{ day.heading }}</h2>
+          <p class="text-lg font-bold text-primary">{{ activities().length }} hoạt động · Dự kiến {{ formatVnd(totalCost()) }}</p>
+          <ul class="text-[15px] text-muted">
+            @for (item of activities(); track item.id) {
+              <li class="whitespace-pre-wrap">{{ item.startTime }} – {{ item.endTime }}  ·  {{ item.shortTitle ?? item.title }}</li>
+            }
+          </ul>
+        </div>
+      </div>
+    } @else {
+      <p class="rounded-card bg-surface p-[18px] text-[13px] text-muted lg:p-6 lg:text-[15px]">
+        Chưa có hoạt động nào cho ngày này.
+      </p>
+    }
+  }
+
+  <!-- Mobile: nút thêm hoạt động (Figma 67:2368) -->
+  <a [routerLink]="['/trips', trip().id, 'itinerary', 'new']" [queryParams]="{ day: selectedDay()?.date }"
+     class="flex items-center justify-center gap-2 rounded-button bg-primary px-[18px] py-[15px] text-[15px] font-bold text-white lg:hidden">
+    <img src="icons/itinerary/plus.svg" alt="" width="20" height="20" />
+    <span>Thêm hoạt động</span>
+  </a>
+</div>

@@ -1,0 +1,105 @@
+@let t = trip();
+<div class="flex flex-col gap-[18px] lg:gap-6">
+  <!-- Đầu trang – desktop (Figma 46:656) -->
+  <header class="hidden flex-col gap-1.5 lg:flex">
+    <h1 class="text-[32px] font-bold text-ink">Ngân sách</h1>
+    <p class="text-sm whitespace-pre text-muted">{{ t.title }}  ·  {{ dates() }}</p>
+  </header>
+
+  <!-- Chỉ số ngân sách (Figma 2:756 / 46:1953) -->
+  <div class="flex flex-col gap-[18px] lg:grid lg:grid-cols-3 lg:items-start lg:gap-6">
+    <section class="flex flex-col gap-3 rounded-card bg-primary p-[18px] text-white lg:gap-4 lg:p-6" aria-label="Đã chi so với ngân sách">
+      <span class="text-[11px] font-bold lg:text-[13px]">ĐÃ CHI / NGÂN SÁCH</span>
+      <span class="text-[30px] font-bold lg:text-[32px]">{{ formatVnd(t.spent) }}</span>
+      <span class="text-[13px] whitespace-pre-wrap lg:text-[15px]">trên {{ formatVnd(t.totalBudget) }}  ·  {{ percent() }}% đã sử dụng</span>
+      <span class="block h-[7px] w-full overflow-hidden rounded-full bg-line" role="progressbar" aria-label="Ngân sách đã dùng"
+            aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="percent()">
+        <span class="block h-full rounded-full bg-accent" [style.width.%]="percent()"></span>
+      </span>
+      <span class="text-sm lg:text-[15px]">Còn lại {{ formatVnd(remaining()) }}</span>
+    </section>
+
+    <section class="hidden flex-col gap-5 rounded-card bg-surface p-6 lg:flex">
+      <h2 class="text-xs font-bold text-muted">NGÂN SÁCH DỰ KIẾN</h2>
+      <p class="text-[32px] font-bold text-ink">{{ formatVnd(t.totalBudget) }}</p>
+      <p class="text-[13px] text-muted">Cho toàn bộ chuyến đi</p>
+    </section>
+
+    <section class="hidden flex-col gap-5 rounded-card bg-surface p-6 lg:flex">
+      <h2 class="text-xs font-bold text-muted">CÒN CÓ THỂ CHI</h2>
+      <p class="text-[32px] font-bold text-ink">{{ formatVnd(remaining()) }}</p>
+      <p class="text-[13px] text-muted">{{ 100 - percent() }}% ngân sách còn lại</p>
+    </section>
+  </div>
+
+  <!-- Cảnh báo ngân sách (Figma 2:763 / 46:1969) -->
+  @if (alertTitle(); as title) {
+    <section class="flex flex-col gap-3 rounded-card bg-surface p-[18px] lg:gap-4 lg:p-6" role="status">
+      <div class="flex items-center gap-3">
+        <img src="icons/budget/alert.svg" alt="" width="22" height="22" />
+        <h2 class="flex-1 text-sm font-bold text-ink lg:text-[15px]">{{ title }}</h2>
+      </div>
+      <p class="text-xs text-muted lg:text-[13px]">{{ alertText() }}</p>
+    </section>
+  }
+
+  <!-- Phân bổ và quy tắc (Figma 46:1975) -->
+  <div class="flex flex-col gap-[18px] lg:grid lg:grid-cols-[minmax(0,704fr)_minmax(0,400fr)] lg:items-start lg:gap-6">
+    <!-- Ngân sách theo hạng mục (Figma 2:769 + 2:772 / 46:1976) -->
+    <section class="flex flex-col gap-[18px] lg:gap-5">
+      <div class="flex items-center gap-3">
+        <h2 class="flex-1 text-[13px] text-muted lg:text-[15px]">Ngân sách theo hạng mục</h2>
+        <button type="button" class="flex-1 text-right text-sm font-semibold text-ink lg:text-[15px]"
+                [attr.aria-pressed]="editing()" (click)="toggleEdit()">
+          {{ editing() ? 'Xong' : 'Chỉnh sửa' }}
+        </button>
+      </div>
+
+      <ul class="flex flex-col gap-3 rounded-card bg-surface p-[18px] lg:gap-4 lg:p-6">
+        @for (c of categories(); track c.name; let i = $index) {
+          @let pct = categoryPercent(c);
+          <li class="flex flex-col gap-3 lg:gap-4">
+            <div class="flex items-center gap-3">
+              <span class="flex-1 text-[13px] text-ink lg:text-[15px]">{{ c.name }}</span>
+              @if (editing()) {
+                <label class="flex flex-1 items-center justify-end gap-1.5 text-sm font-semibold text-ink lg:text-[15px]">
+                  <span>{{ formatMillion(c.spent) }} /</span>
+                  <span class="sr-only">Ngân sách {{ c.name }} (triệu ₫)</span>
+                  <input type="number" min="0" step="0.1" inputmode="decimal"
+                         class="w-16 rounded-input border border-line bg-canvas px-2 py-0.5 text-right"
+                         [value]="c.allocated / 1000000"
+                         (input)="updateAllocated(i, $any($event.target).value)" />
+                  <span>triệu ₫</span>
+                </label>
+              } @else {
+                <span class="flex-1 text-right text-sm font-semibold text-ink lg:text-[15px]">
+                  {{ formatMillion(c.spent) }} / {{ formatMillion(c.allocated) }} triệu ₫
+                </span>
+              }
+            </div>
+            <span class="block h-[7px] w-full overflow-hidden rounded-full bg-line" role="progressbar"
+                  [attr.aria-label]="'Đã dùng ngân sách ' + c.name"
+                  aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="pct">
+              <span class="block h-full rounded-full bg-accent" [style.width.%]="pct > 100 ? 100 : pct"></span>
+            </span>
+          </li>
+        }
+      </ul>
+    </section>
+
+    <!-- Quản lý cảnh báo (Figma 46:1977) – mobile chỉ có dòng ghi chú + nút (2:793, 2:794) -->
+    <div class="flex flex-col gap-[18px] lg:gap-5">
+      <section class="flex flex-col gap-5 lg:rounded-card lg:bg-surface lg:p-6">
+        <h2 class="hidden text-xl font-bold text-ink lg:block">Nhắc đúng lúc, chi hợp lý</h2>
+        <p class="hidden text-[15px] text-ink lg:block">80% · Nhắc sắp chạm ngân sách<br />100% · Cảnh báo vượt hạn mức</p>
+        <p class="text-xs text-muted lg:text-[13px]">Nhắc khi đạt 80% · Cảnh báo khi đạt 100%</p>
+      </section>
+
+      <a [routerLink]="base() + '/fund'"
+         class="flex items-center justify-center gap-2 rounded-button bg-primary-soft px-[18px] py-[15px] text-[15px] font-bold text-primary">
+        <img src="icons/wallet.svg" alt="" width="20" height="20" />
+        <span>Quản lý quỹ chung</span>
+      </a>
+    </div>
+  </div>
+</div>

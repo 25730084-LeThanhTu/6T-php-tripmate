@@ -1,0 +1,114 @@
+@let t = trip();
+<div class="flex flex-col gap-[18px] lg:gap-6">
+  <!-- Đầu trang – desktop (Figma 46:266) -->
+  <header class="hidden flex-col gap-1.5 lg:flex">
+    <h1 class="text-[32px] font-bold text-ink">Cài đặt chuyến đi</h1>
+    <p class="text-sm whitespace-pre text-muted">{{ t.title }}  ·  {{ dates() }}</p>
+  </header>
+
+  <div class="flex flex-col gap-[18px] lg:grid lg:grid-cols-[minmax(0,656fr)_minmax(0,448fr)] lg:items-start lg:gap-6">
+    <!-- Chỉnh sửa chuyến đi (Figma 2:415–2:429 / 46:1695) -->
+    <form [formGroup]="form" (ngSubmit)="save()" novalidate
+          class="flex flex-col gap-[18px] lg:gap-5 lg:rounded-card lg:bg-surface lg:p-6">
+      <h2 class="hidden text-[21px] font-bold text-ink lg:block">Thông tin chuyến đi</h2>
+
+      <div class="flex flex-col gap-[7px]">
+        <label for="settings-title" class="text-xs font-semibold text-muted lg:text-[13px]">Tên chuyến đi</label>
+        <input id="settings-title" type="text" formControlName="title" autocomplete="off"
+               class="w-full rounded-input border border-line bg-surface px-[14px] py-[13px] text-sm text-ink outline-none focus:border-primary lg:text-[15px]" />
+      </div>
+
+      <fieldset class="flex flex-col gap-[7px]">
+        <legend class="mb-[7px] text-xs font-semibold text-muted lg:text-[13px]">Thời gian</legend>
+        <div class="flex items-center gap-2 rounded-input border border-line bg-surface px-[14px] py-[13px] text-sm text-ink focus-within:border-primary lg:text-[15px]">
+          <input type="date" formControlName="startDate" aria-label="Ngày bắt đầu" class="min-w-0 flex-1 bg-transparent outline-none" />
+          <span aria-hidden="true">–</span>
+          <input type="date" formControlName="endDate" aria-label="Ngày kết thúc" [min]="form.controls.startDate.value"
+                 class="min-w-0 flex-1 bg-transparent outline-none" />
+        </div>
+      </fieldset>
+
+      <div class="flex flex-col gap-[7px]">
+        <label for="settings-description" class="text-xs font-semibold text-muted lg:text-[13px]">Mô tả</label>
+        <input id="settings-description" type="text" formControlName="description"
+               class="w-full rounded-input border border-line bg-surface px-[14px] py-[13px] text-sm text-ink outline-none focus:border-primary lg:text-[15px]" />
+      </div>
+
+      <button type="submit" [disabled]="form.pristine"
+              class="rounded-button bg-primary px-[18px] py-[15px] text-[15px] font-bold text-white disabled:opacity-60">
+        {{ saved() ? 'Đã lưu thay đổi' : 'Lưu thay đổi' }}
+      </button>
+      @if (form.invalid && form.touched) {
+        <p class="text-xs text-muted">Vui lòng kiểm tra tên chuyến đi và thời gian.</p>
+      }
+    </form>
+
+    <div class="flex flex-col gap-[18px] lg:gap-5">
+      <!-- Quản lý chuyến đi (Figma 2:431 / 46:1714) -->
+      <section aria-label="Quản lý chuyến đi"
+               class="flex flex-col gap-3 rounded-card bg-surface p-[18px] text-[13px] text-ink lg:gap-4 lg:p-6 lg:text-[15px]">
+        <div class="flex items-center gap-3">
+          <span class="flex-1">Ảnh bìa</span>
+          <label class="flex-1 cursor-pointer text-right text-sm font-semibold whitespace-pre lg:text-[15px]">Thay ảnh  ›<input type="file" accept="image/*" class="sr-only" (change)="onCoverSelected($event)" /></label>
+        </div>
+        @if (coverName(); as name) {
+          <p class="-mt-1 truncate text-xs text-muted lg:text-[13px]">Đã chọn: {{ name }}</p>
+        }
+        <a [routerLink]="base() + '/members'" class="flex items-center gap-3">
+          <span class="flex-1">Thành viên &amp; phân quyền</span>
+          <span class="flex-1 text-right text-sm font-semibold whitespace-pre lg:text-[15px]">{{ memberCount() }} người  ›</span>
+        </a>
+        <div class="flex items-center gap-3">
+          <span class="flex-1">Trạng thái tự động</span>
+          <span class="flex-1 text-right text-sm font-semibold lg:text-[15px]">{{ statusLabel() }}</span>
+        </div>
+        <p class="text-xs text-muted lg:text-[13px]">Trạng thái cập nhật theo ngày bắt đầu và kết thúc so với thời gian thực.</p>
+      </section>
+
+      <!-- Vùng thao tác quan trọng (Figma 2:442 / 46:1725) -->
+      <section aria-label="Vùng thao tác quan trọng"
+               class="flex flex-col gap-3 rounded-card bg-surface p-[18px] text-ink lg:gap-4 lg:p-6">
+        <button type="button" (click)="askConfirm('close')" [disabled]="status() === 'COMPLETED' || status() === 'CANCELLED'"
+                class="flex items-center gap-3 text-left text-[13px] disabled:opacity-60 lg:text-[15px]">
+          <span class="flex-1">Đóng / huỷ chuyến đi</span>
+          <span class="flex-1 text-right text-sm font-semibold lg:text-[15px]" aria-hidden="true">›</span>
+        </button>
+        <button type="button" (click)="askConfirm('delete')" [disabled]="!isLeader()"
+                class="text-left text-[15px] font-bold disabled:opacity-60">
+          Xoá chuyến đi
+        </button>
+        <p class="text-xs text-muted lg:text-[13px]">
+          Xoá vĩnh viễn lịch trình, chi tiêu và album. Thao tác này không thể hoàn tác.
+        </p>
+      </section>
+
+      <!-- Ghi chú cuối màn mobile (Figma 2:414) -->
+      <p class="text-center text-[11px] text-muted lg:hidden">Chỉ Trưởng nhóm có thể xoá chuyến đi</p>
+    </div>
+  </div>
+</div>
+
+<!-- Xác nhận thao tác quan trọng (Figma 67:1979 / 67:2108) -->
+@if (confirm(); as action) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 p-[22px]" (click)="cancelConfirm()">
+    <div role="alertdialog" aria-modal="true" aria-labelledby="confirm-title" aria-describedby="confirm-message"
+         class="flex w-full max-w-[346px] flex-col gap-4 rounded-card bg-surface p-[25px] lg:max-w-[440px]"
+         (click)="$event.stopPropagation()">
+      <h2 id="confirm-title" class="text-[21px] font-bold text-ink">Bạn có chắc muốn tiếp tục?</h2>
+      <p id="confirm-message" class="text-[15px] text-muted">
+        Thao tác xóa hoặc đóng cần được xác nhận trước khi thực hiện.
+        {{ action === 'delete' ? 'Chuyến đi sẽ bị xoá vĩnh viễn.' : 'Chuyến đi sẽ được đóng lại.' }}
+      </p>
+      <div class="flex flex-col gap-2">
+        <button type="button" (click)="cancelConfirm()" autofocus
+                class="rounded-panel bg-primary-soft p-3 text-[15px] font-bold text-primary">
+          Hủy, giữ nguyên dữ liệu
+        </button>
+        <button type="button" (click)="proceed()"
+                class="rounded-panel p-3 text-[15px] font-bold text-muted">
+          {{ action === 'delete' ? 'Xoá chuyến đi' : 'Đóng chuyến đi' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

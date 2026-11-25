@@ -1,0 +1,199 @@
+<!-- Figma: Nội dung 2:80 (mobile) · Nội dung desktop 46:850 -->
+
+<!-- Desktop: đầu trang (46:851) -->
+<div class="hidden flex-col gap-1.5 lg:flex">
+  <h1 class="text-[32px] font-bold text-ink">Thêm chi tiêu</h1>
+  <p class="text-sm text-muted whitespace-pre">{{ tripLine }}</p>
+</div>
+<h1 class="sr-only lg:hidden">Thêm chi tiêu</h1>
+
+<!--
+  Mobile: một cột, thứ tự theo 2:80 (các khối bọc dùng `contents` + order).
+  Desktop: hai cột 656 / 448 (46:2130).
+-->
+<form
+  novalidate
+  (submit)="$event.preventDefault(); save()"
+  class="flex flex-col gap-[18px] lg:grid lg:grid-cols-[minmax(0,656fr)_minmax(0,448fr)] lg:items-start lg:gap-6"
+>
+  <!-- ============ Thông tin khoản chi (46:2131) ============ -->
+  <div class="contents lg:flex lg:flex-col lg:gap-5 lg:rounded-card lg:bg-surface lg:p-6">
+    <h2 class="hidden text-2xl font-bold text-ink lg:block">
+      {{ draft().editingId ? 'Chỉnh sửa khoản chi' : 'Ghi lại một khoản chi' }}
+    </h2>
+
+    <!-- Tên khoản chi -->
+    <div class="flex flex-col gap-[7px]">
+      <label for="expense-title" class="text-xs font-semibold text-muted lg:text-[13px]">Tên khoản chi</label>
+      <input
+        id="expense-title"
+        type="text"
+        autocomplete="off"
+        placeholder="Cà phê ngắm hoàng hôn"
+        [value]="draft().title"
+        (input)="setTitle($any($event.target).value)"
+        [attr.aria-invalid]="submitted() && !!titleError()"
+        class="rounded-input border border-line bg-surface px-[15px] py-[13px] text-sm text-ink outline-none placeholder:text-muted focus:border-primary focus:ring-1 focus:ring-primary lg:text-[15px]"
+      />
+      @if (submitted() && titleError(); as err) {
+        <p class="text-xs font-medium text-danger">{{ err }}</p>
+      }
+    </div>
+
+    <!-- Hạng mục + Ngày chi -->
+    <div class="grid grid-cols-2 gap-3">
+      <div class="flex min-w-0 flex-col gap-[7px]">
+        <label for="expense-category" class="text-xs font-semibold text-muted lg:text-[13px]">Hạng mục</label>
+        <div class="relative">
+          <select
+            id="expense-category"
+            [value]="draft().categoryId"
+            (change)="setCategory($any($event.target).value)"
+            class="w-full appearance-none rounded-input border border-line bg-surface py-[13px] pr-9 pl-[15px] text-sm text-ink outline-none focus:border-primary focus:ring-1 focus:ring-primary lg:text-[15px]"
+          >
+            @for (c of categories; track c.id) {
+              <option [value]="c.id" [selected]="c.id === draft().categoryId">{{ c.name }}</option>
+            }
+          </select>
+          <span aria-hidden="true" class="pointer-events-none absolute top-1/2 right-[15px] -translate-y-1/2 text-sm text-ink">⌄</span>
+        </div>
+      </div>
+      <div class="flex min-w-0 flex-col gap-[7px]">
+        <label for="expense-date" class="text-xs font-semibold text-muted lg:text-[13px]">Ngày chi</label>
+        <input
+          id="expense-date"
+          type="date"
+          [value]="draft().expenseDate"
+          (change)="setDate($any($event.target).value)"
+          class="w-full min-w-0 rounded-input border border-line bg-surface px-[15px] py-[12px] text-sm text-ink outline-none focus:border-primary focus:ring-1 focus:ring-primary lg:text-[15px]"
+        />
+      </div>
+    </div>
+
+    <!-- Người trả -->
+    <div class="flex flex-col gap-[7px]">
+      <label for="expense-payer" class="text-xs font-semibold text-muted lg:text-[13px]">Người trả</label>
+      <div class="relative">
+        <select
+          id="expense-payer"
+          (change)="setPayer($any($event.target).value)"
+          class="w-full appearance-none rounded-input border border-line bg-surface py-[13px] pr-9 pl-[15px] text-sm text-ink outline-none focus:border-primary focus:ring-1 focus:ring-primary lg:text-[15px]"
+        >
+          @for (p of payers; track p.id) {
+            <option [value]="p.id" [selected]="p.id === draft().payerMemberId">{{ p.label }}</option>
+          }
+          <option value="fund" [selected]="draft().payerMemberId === null">Từ quỹ chung</option>
+        </select>
+        <span aria-hidden="true" class="pointer-events-none absolute top-1/2 right-[15px] -translate-y-1/2 text-sm text-ink">⌄</span>
+      </div>
+    </div>
+
+    <!-- Chia cho → màn 17 -->
+    <div class="flex flex-col gap-[7px]">
+      <span id="expense-split-label" class="text-xs font-semibold text-muted lg:text-[13px]">Chia cho</span>
+      <a
+        [routerLink]="splitLink"
+        aria-describedby="expense-split-label"
+        class="rounded-input border border-line bg-surface px-[15px] py-[13px] text-sm font-semibold whitespace-pre text-primary hover:border-primary lg:text-[15px]"
+        [style.border-color]="submitted() && splitProblem() ? '#b3261e' : null"
+      >{{ store.draftSplitSummary() }}  ›</a>
+      @if (submitted() && splitProblem(); as err) {
+        <p class="text-xs font-medium text-danger">{{ err }}</p>
+      }
+    </div>
+
+    <!-- Ghi chú (không có trong Figma, theo đặc tả) -->
+    <div class="flex flex-col gap-[7px]">
+      <label for="expense-notes" class="text-xs font-semibold text-muted lg:text-[13px]">Ghi chú</label>
+      <textarea
+        id="expense-notes"
+        rows="3"
+        placeholder="Thêm ghi chú cho cả nhóm (không bắt buộc)"
+        [value]="draft().notes"
+        (input)="setNotes($any($event.target).value)"
+        class="resize-none rounded-input border border-line bg-surface px-[15px] py-[13px] text-sm text-ink outline-none placeholder:text-muted focus:border-primary focus:ring-1 focus:ring-primary lg:text-[15px]"
+      ></textarea>
+    </div>
+
+    <!-- Lưu chi tiêu (2:961 / 46:2157) -->
+    <button
+      type="submit"
+      [disabled]="saving()"
+      class="order-2 flex items-center justify-center gap-2 rounded-button bg-primary px-[18px] py-[15px] text-[15px] font-bold text-white hover:opacity-90 disabled:opacity-70"
+    >
+      <img src="icons/expenses/check-white.svg" alt="" width="20" height="20" />
+      Lưu chi tiêu
+    </button>
+  </div>
+
+  <!-- ============ Tóm tắt khoản chi (46:2132) ============ -->
+  <div class="contents lg:flex lg:flex-col lg:gap-5">
+    <!-- Nhập số tiền (67:3419 / 67:3433) -->
+    <div
+      class="order-first flex flex-col gap-2 rounded-card border border-transparent bg-surface p-[18px] focus-within:border-primary lg:gap-3 lg:p-6"
+    >
+      <label for="expense-amount" class="text-xs font-semibold text-muted lg:text-[13px]">Số tiền</label>
+      <div class="flex items-baseline gap-2">
+        <input
+          id="expense-amount"
+          type="text"
+          inputmode="numeric"
+          autocomplete="off"
+          placeholder="0"
+          [value]="amountText()"
+          (input)="setAmount($any($event.target))"
+          [attr.aria-invalid]="submitted() && !!amountError()"
+          class="w-full min-w-0 bg-transparent text-[30px] font-bold text-primary outline-none placeholder:text-muted lg:text-[34px]"
+        />
+        <span class="text-xl font-bold text-primary lg:text-2xl">₫</span>
+      </div>
+      @if (submitted() && amountError(); as err) {
+        <p class="text-xs font-medium text-danger">{{ err }}</p>
+      }
+    </div>
+
+    <!-- Xem nhanh phần chia (2:952 / 46:2164) -->
+    <section class="order-1 flex flex-col gap-3 rounded-card bg-surface p-[18px] lg:gap-4 lg:p-6" aria-label="Xem nhanh phần chia">
+      <div class="flex items-center gap-3 text-sm lg:text-[15px]">
+        <span class="flex-1 font-semibold text-ink">{{ preview().label }}</span>
+        <span class="flex-1 text-right font-bold text-primary">{{ preview().value }}</span>
+      </div>
+      <p class="text-xs text-muted lg:text-[13px]">{{ preview().names }}</p>
+    </section>
+
+    <!-- Đính kèm hoá đơn (2:957 / 46:2169) -->
+    <div class="order-1 flex flex-col gap-3">
+      <input
+        #receiptInput
+        id="expense-receipt"
+        type="file"
+        accept="image/*"
+        class="sr-only"
+        (change)="pickReceipt(receiptInput)"
+      />
+      @if (draft().receiptUrl; as url) {
+        <figure class="flex flex-col gap-3 rounded-card bg-surface p-3">
+          <img [src]="url" [alt]="'Ảnh hoá đơn ' + draft().receiptName" width="448" height="252" class="h-[180px] w-full rounded-media object-cover lg:h-[220px]" />
+          <figcaption class="flex items-center gap-3 px-1.5 text-xs lg:text-[13px]">
+            <span class="min-w-0 flex-1 truncate font-semibold text-ink">{{ draft().receiptName }}</span>
+            <label for="expense-receipt" class="cursor-pointer font-bold text-primary hover:underline">Đổi ảnh</label>
+            <button type="button" (click)="removeReceipt()" class="font-bold text-muted hover:text-ink hover:underline">Gỡ ảnh</button>
+          </figcaption>
+        </figure>
+      } @else {
+        <label
+          for="expense-receipt"
+          class="flex cursor-pointer items-center justify-center gap-2 rounded-button bg-primary-soft px-[18px] py-[15px] text-[15px] font-bold text-primary hover:bg-primary-tint focus-within:ring-1 focus-within:ring-primary"
+        >
+          <img src="icons/receipt.svg" alt="" width="20" height="20" />
+          {{ draft().receiptName ? 'Đổi hoá đơn · ' + draft().receiptName : 'Đính kèm hoá đơn' }}
+        </label>
+      }
+    </div>
+
+    <!-- Ghi chú cuối (2:925 / 46:2173) -->
+    <p class="order-3 text-center text-[11px] text-muted lg:text-left lg:text-[13px]">
+      Khoản mới chỉ được ghi nhận khi bạn nhấn Lưu.
+    </p>
+  </div>
+</form>

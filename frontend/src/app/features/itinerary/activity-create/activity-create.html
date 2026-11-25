@@ -1,0 +1,94 @@
+<div class="flex flex-col gap-[18px] lg:gap-6">
+  <!-- Desktop: đầu trang (Figma 46:591) -->
+  <div class="hidden flex-col gap-1.5 lg:flex">
+    <h1 class="text-[32px] font-bold text-ink">Thêm hoạt động</h1>
+    <p class="text-sm whitespace-pre text-muted">{{ trip.title }}  ·  {{ dateRange }}</p>
+  </div>
+
+  <div class="flex flex-col gap-6 lg:flex-row lg:items-start">
+    <!-- Thông tin hoạt động (Figma 2:60 / 46:1908) -->
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate
+          class="flex flex-col gap-[18px] lg:min-w-0 lg:flex-[656] lg:gap-5 lg:rounded-card lg:bg-surface lg:p-6">
+      <h2 class="text-[28px] font-bold text-ink lg:text-2xl">Thêm một điểm dừng</h2>
+      <p class="text-[13px] text-muted lg:hidden">Sắp xếp để cả nhóm không bỏ lỡ điều hay.</p>
+
+      <div class="flex flex-col gap-[7px]">
+        <label for="activity-title" class="text-xs font-semibold text-muted lg:text-[13px]">Tên hoạt động</label>
+        <input id="activity-title" type="text" formControlName="title" [placeholder]="sample.title"
+               class="h-12 w-full rounded-input border bg-surface px-4 text-[15px] text-ink outline-none placeholder:text-muted focus:border-primary lg:h-[49px]"
+               [class.border-line]="!(showErrors() && form.controls.title.invalid)"
+               [class.border-danger]="showErrors() && form.controls.title.invalid"
+               [attr.aria-invalid]="showErrors() && form.controls.title.invalid" />
+        @if (showErrors() && form.controls.title.invalid) {
+          <p class="text-xs text-danger">Vui lòng nhập tên hoạt động.</p>
+        }
+      </div>
+
+      <div class="flex flex-col gap-[7px]">
+        <label for="activity-date" class="text-xs font-semibold text-muted lg:text-[13px]">Ngày</label>
+        <select id="activity-date" formControlName="date"
+                class="h-12 w-full rounded-input border border-line bg-surface px-4 text-[15px] text-ink outline-none focus:border-primary lg:h-[49px]">
+          @for (day of days; track day.date) {
+            <option [value]="day.date">{{ day.optionLabel }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="flex gap-3">
+        <div class="flex min-w-0 flex-1 flex-col gap-[7px]">
+          <label for="activity-start" class="text-xs font-semibold text-muted lg:text-[13px]">Bắt đầu</label>
+          <input id="activity-start" type="time" formControlName="startTime"
+                 class="h-12 w-full rounded-input border border-line bg-surface px-4 text-[15px] text-ink outline-none focus:border-primary lg:h-[49px]" />
+        </div>
+        <div class="flex min-w-0 flex-1 flex-col gap-[7px]">
+          <label for="activity-end" class="text-xs font-semibold text-muted lg:text-[13px]">Kết thúc</label>
+          <input id="activity-end" type="time" formControlName="endTime"
+                 class="h-12 w-full rounded-input border border-line bg-surface px-4 text-[15px] text-ink outline-none focus:border-primary lg:h-[49px]" />
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-[7px]">
+        <label for="activity-place" class="text-xs font-semibold text-muted lg:text-[13px]">Địa điểm</label>
+        <input id="activity-place" type="text" formControlName="place" [placeholder]="sample.place"
+               class="h-12 w-full rounded-input border border-line bg-surface px-4 text-[15px] text-ink outline-none placeholder:text-muted focus:border-primary lg:h-[49px]" />
+      </div>
+
+      <div class="flex flex-col gap-[7px]">
+        <label for="activity-cost" class="text-xs font-semibold text-muted lg:text-[13px]">Chi phí dự kiến cho nhóm</label>
+        <input id="activity-cost" type="text" inputmode="numeric" formControlName="cost" [placeholder]="sample.cost"
+               (blur)="formatCost()"
+               class="h-12 w-full rounded-input border border-line bg-surface px-4 text-[15px] text-ink outline-none placeholder:text-muted focus:border-primary lg:h-[49px]" />
+      </div>
+
+      <div class="flex flex-col gap-[7px]">
+        <label for="activity-notes" class="text-xs font-semibold text-muted lg:text-[13px]">Ghi chú</label>
+        <input id="activity-notes" type="text" formControlName="notes" [placeholder]="sample.notes"
+               class="h-12 w-full rounded-input border border-line bg-surface px-4 text-[15px] text-ink outline-none placeholder:text-muted focus:border-primary lg:h-[49px]" />
+      </div>
+
+      <button type="submit"
+              class="flex items-center justify-center gap-2 rounded-button bg-primary px-[18px] py-[15px] text-[15px] font-bold text-white">
+        <img src="icons/check.svg" alt="" width="20" height="20" class="brightness-0 invert" />
+        <span>Lưu hoạt động</span>
+      </button>
+    </form>
+
+    <!-- Desktop: điểm hẹn — xem trước (Figma 46:1909) -->
+    <aside class="hidden min-w-0 flex-[448] flex-col gap-5 lg:flex" aria-label="Xem trước hoạt động">
+      <img src="images/itinerary/da-lat-day.jpg" alt="Đà Lạt · Ảnh chuyến đi" width="1200" height="896"
+           class="h-[280px] w-full rounded-media object-cover" />
+      <div class="flex flex-col gap-5 rounded-card bg-surface p-6">
+        <h2 class="text-[22px] font-bold text-ink">{{ preview().title }}</h2>
+        <p class="text-[15px] text-muted">
+          {{ preview().place }}<br />
+          {{ preview().when }}<br />
+          Dự kiến {{ preview().cost }} cho nhóm
+        </p>
+        <p class="text-sm text-muted">Chi phí này là dự kiến, chưa được ghi vào chi tiêu.</p>
+      </div>
+    </aside>
+  </div>
+
+  <!-- Mobile: ghi chú cuối màn (Figma 2:690) -->
+  <p class="text-[11px] text-muted lg:hidden">Chi phí này là dự kiến, chưa được ghi vào chi tiêu.</p>
+</div>

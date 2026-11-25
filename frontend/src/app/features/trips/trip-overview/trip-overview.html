@@ -1,0 +1,82 @@
+@let t = trip();
+<div class="flex flex-col gap-[18px] lg:gap-6">
+  <!-- Đầu trang – desktop (Figma 46:201) -->
+  <header class="hidden flex-col gap-1.5 lg:flex">
+    <h1 class="text-[32px] font-bold text-ink">Tổng quan chuyến đi</h1>
+    <p class="text-sm whitespace-pre text-muted">{{ t.title }}  ·  {{ dates() }}</p>
+  </header>
+
+  <!--
+    Bố cục nội dung (Figma 46:205). Mobile là một cột theo thứ tự Figma 2:30;
+    desktop là lưới 2 cột 700/404.
+  -->
+  <div class="flex flex-col gap-[18px] lg:grid lg:grid-cols-[minmax(0,700fr)_minmax(0,404fr)] lg:items-start lg:gap-6">
+    <!-- Ảnh điểm đến (Figma 2:365 / 46:1645) -->
+    <section class="order-1 flex flex-col gap-[18px] lg:order-none lg:gap-5">
+      <img [src]="t.coverImage ?? 'images/trips/da-lat.jpg'" [alt]="'Ảnh chuyến đi ' + t.title" width="1200" height="896"
+           class="h-[154px] w-full rounded-media object-cover lg:h-[280px]" />
+      <div class="flex flex-wrap items-center gap-3">
+        <span class="rounded-card bg-primary-soft px-2.5 py-1.5 text-[11px] font-bold whitespace-nowrap text-primary lg:text-[13px]">{{ statusLabel() }}</span>
+        <span class="rounded-card bg-primary-soft px-2.5 py-1.5 text-[11px] font-bold whitespace-nowrap text-primary lg:text-[13px]">Bạn là {{ roleLabel() }}</span>
+      </div>
+      <h2 class="text-[28px] font-bold text-ink lg:text-[32px]">{{ t.description ?? t.title }}</h2>
+      <p class="text-[13px] whitespace-pre-wrap text-muted lg:text-[15px]">{{ dates() }}  ·  {{ t.location }}</p>
+    </section>
+
+    <!-- Tóm tắt ngân sách (Figma 46:1646) – trên mobile các khối con được xếp lại bằng order -->
+    <div class="contents lg:flex lg:flex-col lg:gap-5">
+      <a [routerLink]="base() + '/budget'"
+         class="order-2 flex flex-col gap-3 rounded-card bg-primary p-[18px] text-white lg:order-none lg:gap-4 lg:p-6">
+        <span class="text-[11px] font-bold lg:text-[13px]">NGÂN SÁCH CHUYẾN ĐI</span>
+        <span class="text-[30px] font-bold lg:text-[32px]">{{ formatVnd(t.spent) }}</span>
+        <span class="text-xs whitespace-pre-wrap lg:text-[13px]">đã chi / {{ formatVnd(t.totalBudget) }}  ·  Còn {{ formatVnd(remaining()) }}</span>
+        <span class="block h-1.5 w-full overflow-hidden rounded-[3px] bg-line" role="progressbar" aria-label="Ngân sách đã dùng"
+              [attr.aria-valuenow]="percent()" aria-valuemin="0" aria-valuemax="100">
+          <span class="block h-1.5 rounded-[3px] bg-accent" [style.width.%]="percent()"></span>
+        </span>
+      </a>
+
+      <a [routerLink]="base() + '/expenses/new'"
+         class="order-5 flex items-center justify-center gap-2 rounded-button bg-primary px-[18px] py-[15px] text-[15px] font-bold text-white lg:order-none">
+        <img src="icons/trips/plus.svg" alt="" width="20" height="20" />
+        <span>Thêm chi tiêu</span>
+      </a>
+
+      <!-- Lối tắt (Figma 2:379 / 46:1665) -->
+      <nav class="order-3 grid grid-cols-3 gap-3 lg:order-none" aria-label="Lối tắt">
+        @for (s of shortcuts; track s.path) {
+          <a [routerLink]="base() + '/' + s.path"
+             class="flex flex-col items-center gap-3 rounded-card bg-surface px-2.5 py-[18px] text-center text-[11px] font-bold text-ink lg:text-[13px]">
+            <img [src]="s.icon" alt="" width="22" height="22" />
+            <span>{{ s.label }}</span>
+          </a>
+        }
+      </nav>
+    </div>
+
+    <!-- Lịch trình hôm nay (Figma 2:392 / 46:1679) -->
+    <section class="order-4 flex flex-col gap-[18px] lg:order-none lg:gap-5">
+      <div class="flex items-center gap-3">
+        <h2 class="flex-1 text-[13px] text-muted lg:text-[15px]">{{ activity()?.dayLabel ?? 'Lịch trình' }}</h2>
+        <a [routerLink]="base() + '/itinerary'" class="flex-1 text-right text-sm font-semibold text-ink lg:text-[15px]">Xem lịch trình</a>
+      </div>
+      @if (activity(); as a) {
+        <div class="flex flex-col gap-3 rounded-card bg-surface p-[18px] lg:gap-4 lg:p-6">
+          <span class="self-start rounded-card bg-primary-soft px-2.5 py-1.5 text-[11px] font-bold whitespace-nowrap text-primary lg:text-[13px]">{{ a.timeLabel }}</span>
+          <p class="text-[17px] font-bold text-ink">{{ a.title }}</p>
+          <p class="text-xs whitespace-pre-wrap text-muted lg:text-[13px]">{{ a.place }}  ·  Dự kiến {{ formatVnd(a.estimatedCost) }}</p>
+        </div>
+      } @else {
+        <div class="rounded-card bg-surface p-[18px] text-[13px] text-muted lg:p-6">Chưa có hoạt động nào sắp tới.</div>
+      }
+    </section>
+
+    <!-- Cùng đi với bạn – chỉ có trên desktop (Figma 46:1680) -->
+    <section class="hidden flex-col gap-5 rounded-card bg-surface p-6 lg:flex">
+      <h2 class="text-[19px] font-bold text-ink">{{ t.memberCount }} thành viên đồng hành</h2>
+      @for (m of members(); track m.id) {
+        <p class="text-[15px] text-ink">{{ m.user?.fullName }} · {{ roleLabels[m.role] }}</p>
+      }
+    </section>
+  </div>
+</div>

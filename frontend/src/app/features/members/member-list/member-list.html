@@ -1,0 +1,208 @@
+<!-- Figma: Nội dung 2:40 (mobile) · Nội dung desktop 46:330 -->
+
+<!-- Menu chọn vai trò dùng chung cho mobile và desktop -->
+<ng-template #roleMenu let-row>
+  <ul
+    role="menu"
+    [attr.aria-label]="'Đổi vai trò của ' + row.fullName"
+    class="absolute top-full right-0 z-20 mt-2 flex w-44 flex-col gap-1 rounded-panel border border-line bg-surface p-1.5 shadow-lg lg:right-auto lg:left-0"
+    (click)="$event.stopPropagation()"
+  >
+    @for (role of changeableRoles; track role) {
+      <li role="none">
+        <button
+          type="button"
+          role="menuitemradio"
+          [attr.aria-checked]="row.role === role"
+          (click)="changeRole(row.memberId, role)"
+          class="flex w-full items-center justify-between gap-2 rounded-item px-3 py-2 text-left text-[13px] text-ink hover:bg-primary-soft lg:text-sm"
+          [class.font-bold]="row.role === role"
+          [class.text-primary]="row.role === role"
+        >
+          {{ roleLabel[role] }}
+          @if (row.role === role) {
+            <img src="icons/check.svg" alt="" width="20" height="20" />
+          }
+        </button>
+      </li>
+    }
+  </ul>
+</ng-template>
+
+<!-- ======================= MOBILE ======================= -->
+<div class="flex flex-col gap-[18px] lg:hidden">
+  <h1 class="text-[28px] font-bold text-ink">Hội bạn của bạn</h1>
+  <p class="text-[13px] whitespace-pre-wrap text-muted">{{ summary() }}</p>
+
+  <ul class="flex flex-col gap-[18px]">
+    @for (row of members(); track row.memberId) {
+      <li class="flex flex-col gap-3 rounded-card bg-surface p-[18px]">
+        <div class="relative flex items-center gap-3">
+          <p class="min-w-0 flex-1 truncate text-base font-bold text-ink">
+            {{ row.fullName }}@if (row.isMe) { · Bạn}
+          </p>
+          @if (canManage() && !row.isMe) {
+            <button
+              type="button"
+              aria-haspopup="menu"
+              [attr.aria-expanded]="openMenu() === 'm-' + row.memberId"
+              [attr.aria-label]="'Đổi vai trò của ' + row.fullName"
+              (click)="toggleMenu('m-' + row.memberId, $event)"
+              class="rounded-item p-0.5 hover:bg-primary-soft"
+            >
+              <img src="icons/members/more-small.svg" alt="" width="20" height="20" />
+            </button>
+            @if (openMenu() === 'm-' + row.memberId) {
+              <ng-container *ngTemplateOutlet="roleMenu; context: { $implicit: row }" />
+            }
+          } @else {
+            <span class="size-5 shrink-0" aria-hidden="true"></span>
+          }
+        </div>
+        <div class="flex items-center gap-3">
+          <p class="min-w-0 flex-1 truncate text-[13px] text-muted">&#64;{{ row.username }}</p>
+          <p class="flex-1 text-right text-sm font-semibold text-primary">{{ roleLabel[row.role] }}</p>
+        </div>
+      </li>
+    }
+  </ul>
+
+  @if (invitations().length) {
+    <ul class="flex flex-col gap-[18px]" aria-label="Lời mời đang chờ">
+      @for (invite of invitations(); track invite.id) {
+        <li class="flex flex-col gap-3 rounded-card bg-surface p-[18px]">
+          <p class="truncate text-sm font-bold text-ink">{{ invite.target }}</p>
+          <div class="flex items-center gap-3">
+            <p class="flex-1 text-[13px] text-muted">{{ invite.sentLabel }}</p>
+            <button
+              type="button"
+              (click)="revoke(invite.id)"
+              class="flex-1 text-right text-sm font-bold text-primary hover:underline"
+            >
+              Thu hồi
+            </button>
+          </div>
+        </li>
+      }
+    </ul>
+  }
+
+  <a
+    [routerLink]="inviteLink()"
+    class="flex w-full items-center justify-center gap-2 rounded-button bg-primary px-[18px] py-[15px] text-[15px] font-bold text-white hover:opacity-90"
+  >
+    <img src="icons/members/plus.svg" alt="" width="20" height="20" />
+    Mời thêm bạn
+  </a>
+
+  <section class="flex flex-col gap-3 rounded-card bg-primary-soft p-[18px]">
+    <h2 class="text-[15px] font-bold text-ink">Cùng quản lý, rõ vai trò</h2>
+    <p class="text-xs text-muted">
+      Phó nhóm quản lý lịch trình, ngân sách và chi tiêu; thành viên xem và thêm khoản chi.
+    </p>
+  </section>
+
+  <div class="flex items-center gap-3">
+    <p class="flex-1 text-[13px] text-muted">Quản lý vai trò</p>
+    <p class="flex-1 text-right text-sm font-semibold whitespace-pre text-primary">{{ roleLabel[myRole()] }}  ›</p>
+  </div>
+</div>
+
+<!-- ======================= DESKTOP ======================= -->
+<div class="hidden flex-col gap-6 lg:flex">
+  <header class="flex items-center gap-6">
+    <div class="flex min-w-0 flex-1 flex-col gap-1.5">
+      <h1 class="text-[32px] font-bold text-ink">Thành viên</h1>
+      <p class="text-sm whitespace-pre text-muted">{{ tripSubtitle() }}</p>
+    </div>
+    <a
+      [routerLink]="inviteLink()"
+      class="flex w-[200px] shrink-0 items-center justify-center gap-2 rounded-button bg-primary px-[18px] py-[15px] text-[15px] font-bold text-white hover:opacity-90"
+    >
+      <img src="icons/members/plus.svg" alt="" width="20" height="20" />
+      Mời thêm bạn
+    </a>
+  </header>
+
+  <p class="text-[15px] whitespace-pre text-muted">{{ summary() }}</p>
+
+  <div class="rounded-card bg-surface p-6">
+    <table class="w-full table-fixed border-collapse text-left">
+      <thead>
+        <tr class="rounded-panel bg-canvas text-xs font-bold text-muted">
+          <th scope="col" class="rounded-l-panel px-4 py-3.5 font-bold">THÀNH VIÊN</th>
+          <th scope="col" class="px-4 py-3.5 font-bold">TÊN NGƯỜI DÙNG</th>
+          <th scope="col" class="px-4 py-3.5 font-bold">VAI TRÒ</th>
+          <th scope="col" class="rounded-r-panel px-4 py-3.5 font-bold">THAO TÁC</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of members(); track row.memberId) {
+          <tr class="border-b border-line text-[15px] last:border-b-0">
+            <td class="truncate px-4 py-[22px] font-bold text-ink">
+              {{ row.fullName }}@if (row.isMe) { · Bạn}
+            </td>
+            <td class="truncate px-4 py-[22px] text-muted">&#64;{{ row.username }}</td>
+            <td class="px-4 py-[22px]">
+              <span class="font-semibold text-primary">{{ roleLabel[row.role] }}</span>
+            </td>
+            <td class="px-4 py-[22px]">
+              @if (row.role === 'LEADER') {
+                <span class="text-muted">Chủ chuyến đi</span>
+              } @else if (canManage()) {
+                <div class="relative inline-block">
+                  <button
+                    type="button"
+                    aria-haspopup="menu"
+                    [attr.aria-expanded]="openMenu() === 'd-' + row.memberId"
+                    (click)="toggleMenu('d-' + row.memberId, $event)"
+                    class="font-bold whitespace-pre text-primary hover:underline"
+                  >Đổi vai trò  ⌄</button>
+                  @if (openMenu() === 'd-' + row.memberId) {
+                    <ng-container *ngTemplateOutlet="roleMenu; context: { $implicit: row }" />
+                  }
+                </div>
+              } @else {
+                <span class="text-muted">—</span>
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <div class="grid grid-cols-[656fr_448fr] items-start gap-6">
+    <div class="flex flex-col gap-5">
+      <section class="flex flex-col gap-4 rounded-card bg-primary-soft p-6">
+        <h2 class="text-[15px] font-bold text-ink">Cùng quản lý, rõ vai trò</h2>
+        <p class="text-[13px] text-muted">
+          Phó nhóm quản lý lịch trình, ngân sách và chi tiêu; thành viên xem và thêm khoản chi.
+        </p>
+      </section>
+      <div class="flex items-center gap-3 text-[15px]">
+        <p class="flex-1 text-muted">Quản lý vai trò</p>
+        <p class="flex-1 text-right font-semibold whitespace-pre text-primary">{{ roleLabel[myRole()] }}  ›</p>
+      </div>
+    </div>
+
+    <div class="flex flex-col gap-5" aria-label="Lời mời đang chờ">
+      @for (invite of invitations(); track invite.id) {
+        <div class="flex flex-col gap-4 rounded-card bg-surface p-6">
+          <p class="truncate text-[15px] font-bold text-ink">{{ invite.target }}</p>
+          <div class="flex items-center gap-3 text-[15px]">
+            <p class="flex-1 text-muted">{{ invite.sentLabel }}</p>
+            <button type="button" (click)="revoke(invite.id)" class="flex-1 text-right font-bold text-primary hover:underline">
+              Thu hồi
+            </button>
+          </div>
+        </div>
+      } @empty {
+        <div class="flex flex-col gap-2 rounded-card bg-surface p-6">
+          <p class="text-[15px] font-bold text-ink">Không có lời mời đang chờ</p>
+          <a [routerLink]="inviteLink()" class="text-[15px] font-bold text-primary hover:underline">Mời thêm bạn</a>
+        </div>
+      }
+    </div>
+  </div>
+</div>

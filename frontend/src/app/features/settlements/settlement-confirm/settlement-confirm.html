@@ -1,0 +1,145 @@
+<!-- Đầu trang desktop (46:1111) -->
+<header class="hidden flex-col gap-1.5 lg:flex">
+  <h1 class="text-[32px] font-bold text-ink">Xác nhận thanh toán</h1>
+  <p class="text-sm whitespace-pre text-muted">{{ tripSubtitle() }}</p>
+</header>
+
+<!-- Chip trạng thái (2:1145 / 46:2308) -->
+<span class="self-start rounded-card bg-primary-soft px-2.5 py-1.5 text-[11px] font-bold text-primary lg:text-[13px]">{{ chipText() }}</span>
+
+<!-- Tiêu đề trạng thái – mobile đặt ở đây, desktop đặt ở cột phải -->
+<div class="flex flex-col gap-[18px] lg:hidden">
+  <h1 class="text-[28px] font-bold text-ink">{{ headline() }}</h1>
+  <p class="text-[13px] text-muted">{{ subline() }}</p>
+</div>
+
+<div class="flex flex-col gap-[18px] lg:grid lg:grid-cols-2 lg:items-start lg:gap-6">
+  <!-- Thông tin giao dịch (46:2311) -->
+  <section class="flex flex-col gap-[18px] lg:gap-5" aria-label="Thông tin giao dịch">
+    <div class="flex flex-col gap-3 rounded-card bg-surface p-[18px] lg:gap-4 lg:p-6">
+      <p class="text-[11px] font-bold text-muted lg:text-[13px]">SỐ TIỀN</p>
+      <p class="text-[32px] font-bold text-ink">{{ amountText() }}</p>
+      <p class="text-sm text-ink lg:text-[15px]">{{ partiesText() }}</p>
+    </div>
+
+    <dl class="flex flex-col gap-3 rounded-card bg-surface p-[18px] lg:gap-4 lg:p-6">
+      <div class="flex items-center gap-3">
+        <dt class="flex-1 text-[13px] text-muted lg:text-[15px]">Thời gian báo đã trả</dt>
+        <dd class="flex-1 text-right text-sm font-semibold text-ink lg:text-[15px]">{{ sentAtText() }}</dd>
+      </div>
+      <div class="flex items-center gap-3">
+        <dt class="flex-1 text-[13px] text-muted lg:text-[15px]">Phương thức</dt>
+        <dd class="flex-1 text-right text-sm font-semibold text-ink lg:text-[15px]">{{ detail()?.method ?? '—' }}</dd>
+      </div>
+      <div class="flex items-center gap-3">
+        <dt class="flex-1 text-[13px] text-muted lg:text-[15px]">Nội dung</dt>
+        <dd class="flex-1 text-right text-sm font-semibold text-ink lg:text-[15px]">{{ detail()?.note ?? '—' }}</dd>
+      </div>
+      <div class="flex items-center gap-3">
+        <dt class="flex-1 text-[13px] text-muted lg:text-[15px]">Chứng từ</dt>
+        <dd class="flex-1 text-right text-sm font-semibold lg:text-[15px]">
+          @if (detail()?.proof) {
+            <button type="button" class="font-semibold whitespace-pre text-primary" (click)="dialog.set('receipt')">Xem biên nhận  ›</button>
+          } @else {
+            <span class="text-muted">Chưa có</span>
+          }
+        </dd>
+      </div>
+    </dl>
+  </section>
+
+  <!-- Trạng thái và thao tác (46:2312) -->
+  <section class="flex flex-col gap-[18px] lg:gap-5" aria-label="Xác nhận">
+    <div class="hidden flex-col gap-5 lg:flex">
+      <h2 class="text-[32px] font-bold text-ink">{{ headline() }}</h2>
+      <p class="text-[15px] text-muted">{{ subline() }}</p>
+    </div>
+
+    <!-- Xác nhận hai chiều (2:1166 / 46:2332) -->
+    <ol class="flex flex-col gap-3 rounded-card bg-primary-soft p-[18px] lg:gap-4 lg:p-6">
+      <li class="text-sm whitespace-pre font-semibold text-ink lg:text-[15px]">1. {{ fromShort() }} báo đã thanh toán{{ status() === 'PENDING' ? '' : '  ✓' }}</li>
+      <li class="text-sm whitespace-pre text-ink lg:text-[15px]" [class.font-semibold]="status() === 'CONFIRMED'">2. {{ toShort() }} xác nhận đã nhận tiền{{ status() === 'CONFIRMED' ? '  ✓' : '' }}</li>
+      <li class="list-none text-xs text-muted lg:text-[13px]">
+        @if (status() === 'CONFIRMED') {
+          Số dư của bạn và {{ fromShort() }} đã về 0 ₫.
+        } @else {
+          Sau xác nhận, số dư của bạn và {{ fromShort() }} sẽ về 0 ₫.
+        }
+      </li>
+    </ol>
+
+    @if (canConfirm()) {
+      <button type="button" (click)="confirmReceived()"
+              class="flex w-full items-center justify-center gap-2 rounded-button bg-primary px-[18px] py-[15px] text-[15px] font-bold text-white">
+        <img src="icons/settlements/check-white.svg" alt="" width="20" height="20" />
+        <span>Tôi đã nhận đủ tiền</span>
+      </button>
+      <button type="button" (click)="dialog.set('info')"
+              class="w-full rounded-button bg-surface px-[18px] py-[15px] text-[15px] font-bold text-primary">
+        Tôi chưa nhận được tiền
+      </button>
+      <p class="text-[11px] text-muted lg:text-sm">Chỉ xác nhận khi tiền đã vào tài khoản của bạn.</p>
+    } @else if (status() === 'CONFIRMED') {
+      <div role="status" class="flex items-center gap-3 rounded-card bg-surface p-[18px] lg:p-6">
+        <span class="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary">
+          <img src="icons/settlements/check-white.svg" alt="" width="20" height="20" />
+        </span>
+        <p class="text-sm font-semibold text-ink lg:text-[15px]">Đã xác nhận nhận {{ amountText() }} từ {{ fromShort() }}.</p>
+      </div>
+      <button type="button" (click)="backToList()"
+              class="w-full rounded-button bg-primary px-[18px] py-[15px] text-[15px] font-bold text-white">
+        Về màn hình chia tiền
+      </button>
+    } @else {
+      <p class="text-[13px] text-muted lg:text-[15px]">Chỉ người nhận mới có thể xác nhận khoản chuyển này.</p>
+      <button type="button" (click)="backToList()"
+              class="w-full rounded-button bg-surface px-[18px] py-[15px] text-[15px] font-bold text-primary">
+        Về màn hình chia tiền
+      </button>
+    }
+  </section>
+</div>
+
+<!-- ============ Hộp thoại ============ -->
+@if (dialog(); as kind) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 p-[22px]" (click)="closeDialog()">
+    <div role="dialog" aria-modal="true" aria-labelledby="settlement-dialog-title"
+         class="flex w-full max-w-[346px] flex-col gap-4 rounded-card bg-surface p-[25px] lg:max-w-[440px]"
+         (click)="$event.stopPropagation()">
+      @switch (kind) {
+        @case ('confirm') {
+          <!-- Prototype · Xác nhận nhận tiền (67:1969 / 67:2098) -->
+          <h2 id="settlement-dialog-title" class="text-[21px] font-bold text-ink">Xác nhận đã nhận đủ tiền?</h2>
+          <p class="text-[15px] text-muted">
+            Bạn đang xem mô phỏng xác nhận khoản chuyển của {{ fromShort() }}. Số dư của bạn và {{ fromShort() }} đã về 0 ₫.
+          </p>
+          <button type="button" (click)="backToList()"
+                  class="rounded-button bg-primary px-3 py-3 text-[15px] font-bold text-white">Về màn hình chia tiền</button>
+          <button type="button" (click)="closeDialog()"
+                  class="rounded-button bg-primary-soft px-3 py-3 text-[15px] font-bold text-primary">Quay lại kiểm tra</button>
+        }
+        @case ('receipt') {
+          <h2 id="settlement-dialog-title" class="text-[21px] font-bold text-ink">Biên nhận chuyển khoản</h2>
+          <div class="flex flex-col gap-3 rounded-panel bg-canvas p-[18px] text-sm">
+            <p class="text-center text-[11px] font-bold text-muted">{{ detail()?.proof?.bank }} · GIAO DỊCH THÀNH CÔNG</p>
+            <p class="text-center text-[28px] font-bold text-primary">{{ amountText() }}</p>
+            <div class="flex justify-between gap-3"><span class="text-muted">Thời gian</span><span class="font-semibold">{{ sentAtText() }}</span></div>
+            <div class="flex justify-between gap-3"><span class="text-muted">Mã giao dịch</span><span class="font-semibold">{{ detail()?.proof?.reference }}</span></div>
+            <div class="flex justify-between gap-3"><span class="text-muted">Nội dung</span><span class="font-semibold">{{ detail()?.note }}</span></div>
+          </div>
+          <button type="button" (click)="closeDialog()"
+                  class="rounded-button bg-primary px-3 py-3 text-[15px] font-bold text-white">Đóng</button>
+        }
+        @case ('info') {
+          <!-- Prototype · Thông tin thao tác (67:1941 / 67:2070) -->
+          <h2 id="settlement-dialog-title" class="text-[21px] font-bold text-ink">Thao tác minh họa</h2>
+          <p class="text-[15px] text-muted">
+            Prototype sử dụng dữ liệu mẫu để trình bày luồng thao tác. {{ fromShort() }} sẽ được nhắc kiểm tra lại khoản chuyển.
+          </p>
+          <button type="button" (click)="closeDialog()"
+                  class="rounded-button bg-primary px-3 py-3 text-[15px] font-bold text-white">Đóng</button>
+        }
+      }
+    </div>
+  </div>
+}

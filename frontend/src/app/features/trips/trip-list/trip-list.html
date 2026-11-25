@@ -1,0 +1,112 @@
+<div class="flex flex-col gap-[18px] lg:gap-6">
+  <!-- Đầu trang (Figma 67:2170 / 46:71) -->
+  <header class="flex flex-col gap-[18px] lg:flex-row lg:items-stretch lg:gap-6">
+    <div class="flex min-w-0 flex-1 flex-col gap-[18px] lg:gap-1.5">
+      <h1 class="text-[28px] font-bold text-ink lg:text-[32px]">Chào {{ userName }}, đi đâu nào?</h1>
+      <p class="text-[13px] text-muted lg:text-sm">Những hành trình đáng nhớ đang chờ bạn.</p>
+    </div>
+    <a routerLink="/trips/new"
+       class="hidden w-[230px] items-center justify-center gap-2 rounded-button bg-primary px-[18px] py-[15px] text-[15px] font-bold text-white lg:flex">
+      <img src="icons/trips/plus.svg" alt="" width="20" height="20" />
+      <span>Tạo chuyến đi mới</span>
+    </a>
+  </header>
+
+  <!-- Bộ lọc chuyến đi (Figma 67:2172 / 67:2762) -->
+  <div class="flex items-center gap-[7px]" role="group" aria-label="Lọc chuyến đi">
+    @for (f of filters; track f.key) {
+      <button type="button" (click)="filter.set(f.key)" [attr.aria-pressed]="filter() === f.key"
+              class="rounded-card px-2.5 py-1.5 text-[11px] font-bold whitespace-nowrap lg:text-[13px]"
+              [class]="filter() === f.key ? 'bg-primary text-white' : 'bg-primary-tint text-primary'">
+        {{ f.label }} · {{ f.count }}
+      </button>
+    }
+  </div>
+
+  <div class="flex flex-col gap-[18px] lg:flex-row lg:items-start lg:gap-6">
+    <!-- Chuyến đi nổi bật (Figma 67:2179 / 67:2771) -->
+    @if (featured(); as t) {
+      <a [routerLink]="tripLink(t)"
+         class="flex flex-col gap-3 rounded-card bg-surface p-[18px] lg:flex-[650] lg:gap-4 lg:p-6">
+        <img [src]="t.coverImage ?? 'images/trips/da-lat.jpg'" [alt]="'Ảnh chuyến đi ' + t.title" width="1200" height="896"
+             class="h-[169px] w-full rounded-media object-cover lg:h-[275px]" />
+        <div class="flex items-center gap-3">
+          <span class="rounded-card bg-primary-soft px-2.5 py-1.5 text-[11px] font-bold whitespace-nowrap text-primary lg:text-[13px]">
+            {{ statusLabel[t.status] }}
+          </span>
+          <span class="flex-1 text-xs font-medium text-muted lg:text-[13px]">{{ t.memberCount }} thành viên</span>
+        </div>
+        <h2 class="text-[21px] font-bold text-ink">{{ t.title }}</h2>
+        <div class="flex items-center gap-3 lg:text-[15px]">
+          <span class="flex-1 text-[13px] text-muted lg:text-[15px]">{{ formatDateRange(t.startDate, t.endDate) }}</span>
+          <span class="flex-1 text-right text-sm font-semibold text-ink lg:text-[15px]">{{ duration(t.startDate, t.endDate) }}</span>
+        </div>
+        <div class="h-1.5 w-full overflow-hidden rounded-[3px] bg-line" role="progressbar" aria-label="Ngân sách đã dùng"
+             [attr.aria-valuenow]="percent(t)" aria-valuemin="0" aria-valuemax="100">
+          <div class="h-1.5 rounded-[3px] bg-accent" [style.width.%]="percent(t)"></div>
+        </div>
+        <div class="flex items-center gap-3">
+          <span class="flex-1 text-[13px] text-muted lg:text-[15px]">Đã chi {{ formatVnd(t.spent) }}</span>
+          <span class="flex-1 text-right text-sm font-semibold text-ink lg:text-[15px]">{{ percent(t) }}% ngân sách</span>
+        </div>
+      </a>
+    }
+
+    <!-- Các hành trình khác (Figma 67:2786) -->
+    <div class="flex flex-col gap-[18px] lg:flex-[454] lg:gap-5">
+      <h2 class="hidden text-xl font-bold text-ink lg:block">Hành trình của bạn</h2>
+
+      @for (t of others(); track t.id) {
+        @if (t.status === 'COMPLETED' || t.status === 'CANCELLED') {
+          <a [routerLink]="tripLink(t)"
+             class="flex flex-col gap-2 rounded-card bg-surface px-[18px] py-[14px] lg:gap-4 lg:p-6">
+            <span class="text-base font-bold text-ink">{{ t.title }}</span>
+            <span class="text-xs whitespace-pre-wrap text-muted lg:text-[13px]">{{ formatDateRange(t.startDate, t.endDate) }}  ·  {{ statusLabel[t.status] }}</span>
+          </a>
+        } @else {
+          <a [routerLink]="tripLink(t)" class="flex flex-col gap-3 rounded-card bg-surface p-[18px] lg:gap-4 lg:p-6">
+            <span class="text-base font-bold text-ink">{{ t.title }}</span>
+            <span class="flex items-center gap-3">
+              <span class="flex-1 text-[13px] text-muted lg:text-[15px]">{{ formatDateRange(t.startDate, t.endDate) }}</span>
+              <span class="flex-1 text-right text-sm font-semibold text-ink lg:text-[15px]">{{ statusLabel[t.status] }}</span>
+            </span>
+          </a>
+        }
+      } @empty {
+        @if (!featured()) {
+          <p class="rounded-card bg-surface p-[18px] text-[13px] text-muted lg:p-6">Chưa có chuyến đi nào.</p>
+        }
+      }
+
+      <!-- Lời nhắc chia tiền (Figma 67:2796) – chỉ có trên desktop -->
+      @if (reminder && filter() !== 'UPCOMING') {
+        <div class="hidden flex-col gap-5 rounded-card bg-primary-soft p-6 lg:flex">
+          <p class="text-lg font-bold text-primary">Còn một khoản đang chờ bạn</p>
+          <p class="text-[15px] text-muted">
+            {{ reminder.from?.shortName }} đã báo chuyển {{ formatVnd(reminder.settlement.amount) }}. Kiểm tra và xác nhận khi bạn nhận đủ tiền.
+          </p>
+          <a [routerLink]="['/trips', reminder.settlement.tripId, 'settlements', reminder.settlement.id]"
+             class="flex items-center justify-center gap-2 rounded-button bg-primary px-[18px] py-[15px] text-[15px] font-bold text-white">
+            <img src="icons/trips/check.svg" alt="" width="20" height="20" />
+            <span>Xem &amp; xác nhận</span>
+          </a>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Thông tin kế hoạch chung (Figma 67:2803) – chỉ có trên desktop -->
+  <section class="hidden flex-col gap-5 rounded-card bg-surface p-6 lg:flex">
+    <h2 class="text-xl font-bold text-ink">Mọi điều cần cho chuyến đi, ở cùng một nơi</h2>
+    <p class="text-[15px] text-muted">
+      Lên lịch trình theo ngày, quản lý ngân sách cùng hội bạn và lưu giữ từng khoảnh khắc.
+    </p>
+  </section>
+
+  <!-- Tạo chuyến đi mới – mobile (Figma 67:2202) -->
+  <a routerLink="/trips/new"
+     class="flex items-center justify-center gap-2 rounded-button bg-primary px-[18px] py-[15px] text-[15px] font-bold text-white lg:hidden">
+    <img src="icons/trips/plus.svg" alt="" width="20" height="20" />
+    <span>Tạo chuyến đi mới</span>
+  </a>
+</div>

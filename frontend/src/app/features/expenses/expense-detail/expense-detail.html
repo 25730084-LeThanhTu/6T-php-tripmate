@@ -1,0 +1,168 @@
+<!-- Figma: Nội dung 2:90 (mobile) · Nội dung desktop 46:980 -->
+
+<!-- Desktop: đầu trang (46:981) -->
+<div class="hidden flex-col gap-1.5 lg:flex">
+  <h1 class="text-[32px] font-bold text-ink">Chi tiết khoản chi</h1>
+  <p class="text-sm text-muted whitespace-pre">{{ tripLine() }}</p>
+</div>
+
+@if (expense(); as e) {
+  <!-- Nhãn trạng thái (2:1033 / 46:2226) -->
+  <span class="self-start rounded-card bg-primary-soft px-2.5 py-1.5 text-[11px] font-bold whitespace-nowrap text-primary lg:text-[13px]">
+    {{ badge() }}
+  </span>
+
+  <!-- Tên + số tiền (2:1035, 2:1036) -->
+  <div class="flex flex-col gap-[18px] lg:gap-2">
+    <h2 class="text-[28px] font-bold text-ink lg:text-2xl">{{ e.title }}</h2>
+    <p class="text-[13px] text-muted lg:text-sm">{{ vnd(e.amount) }} · Hạng mục {{ categoryName(e.categoryId) }}</p>
+  </div>
+
+  <!-- Hai cột desktop 552 / 552 (46:2228) -->
+  <div class="flex flex-col gap-[18px] lg:grid lg:grid-cols-2 lg:items-start lg:gap-6">
+    <!-- ============ Thông tin và chứng từ (46:2229) ============ -->
+    <div class="flex flex-col gap-[18px] lg:gap-5">
+      <!-- Thông tin chi (2:1037 / 46:2231) -->
+      <dl class="flex flex-col gap-3 rounded-card bg-surface p-[18px] text-sm lg:gap-4 lg:p-6 lg:text-[15px]">
+        @for (row of info(); track row.label) {
+          <div class="flex items-center gap-3">
+            <dt class="flex-1 text-muted">{{ row.label }}</dt>
+            <dd class="flex-1 text-right font-semibold text-ink">{{ row.value }}</dd>
+          </div>
+        }
+      </dl>
+
+      <!-- Phần chia từng người (bổ sung theo đặc tả) -->
+      <section class="flex flex-col gap-3 rounded-card bg-surface p-[18px] lg:gap-4 lg:p-6" aria-labelledby="split-heading">
+        <h3 id="split-heading" class="text-[11px] font-bold text-muted lg:text-xs">PHẦN CHIA TỪNG NGƯỜI</h3>
+        @for (s of shares(); track s.id) {
+          <div class="flex items-center gap-3 text-sm lg:text-[15px]">
+            <span class="flex-1 text-ink">{{ s.label }}</span>
+            <span class="flex-1 text-right font-semibold text-primary">{{ vnd(s.amount) }}</span>
+          </div>
+        }
+      </section>
+
+      <!-- Chứng từ (2:1053 / 46:2247) -->
+      <section class="flex flex-col gap-3 rounded-card bg-surface p-[18px] lg:p-6" aria-label="Chứng từ">
+        <div class="flex items-center gap-3">
+          <span class="flex size-7 shrink-0 items-center justify-center">
+            <img src="icons/receipt.svg" alt="" width="20" height="20" />
+          </span>
+          @if (e.receiptName) {
+            <div class="flex min-w-0 flex-1 flex-col text-[13px] lg:text-sm">
+              <span class="truncate font-semibold text-ink">{{ e.receiptName }}</span>
+              <span class="text-muted">
+                Đã đính kèm ·
+                <button
+                  type="button"
+                  (click)="showReceipt.set(!showReceipt())"
+                  [attr.aria-expanded]="showReceipt()"
+                  class="font-bold text-primary hover:underline"
+                >
+                  {{ showReceipt() ? 'Ẩn ảnh' : 'Xem ảnh' }}
+                </button>
+              </span>
+            </div>
+          } @else {
+            <div class="flex flex-1 flex-col text-[13px] lg:text-sm">
+              <span class="font-semibold text-ink">Chưa có hoá đơn</span>
+              <span class="text-muted">Thêm ảnh khi chỉnh sửa khoản chi</span>
+            </div>
+          }
+        </div>
+        @if (e.receiptName && showReceipt()) {
+          <!-- Ảnh hoá đơn giả: khối giữ chỗ (chưa có ảnh thật) -->
+          <div
+            role="img"
+            [attr.aria-label]="'Ảnh hoá đơn ' + e.receiptName"
+            class="flex h-[220px] items-center justify-center rounded-media bg-primary-soft text-[13px] font-semibold text-primary"
+          >
+            {{ e.receiptName }}
+          </div>
+        }
+      </section>
+    </div>
+
+    <!-- ============ Lịch sử cập nhật (46:2230) ============ -->
+    <div class="flex flex-col gap-[18px] lg:gap-5">
+      <div class="flex items-center gap-3 text-sm lg:text-[15px]">
+        <h3 class="flex-1 font-bold text-ink">Lịch sử chỉnh sửa</h3>
+        <p class="flex-1 text-right text-muted">{{ logs().length }} cập nhật</p>
+      </div>
+
+      <ol class="flex flex-col gap-3 rounded-card bg-surface p-[18px] lg:gap-4 lg:p-6" aria-label="Nhật ký">
+        @for (log of logs(); track log.id) {
+          <li class="flex flex-col gap-3 lg:gap-4">
+            <span class="text-[13px] font-semibold text-ink lg:text-[15px]">{{ log.title }}</span>
+            <span class="text-xs text-muted lg:text-[13px]">{{ log.detail }}</span>
+          </li>
+        } @empty {
+          <li class="text-[13px] text-muted">Chưa có thay đổi nào.</li>
+        }
+      </ol>
+
+      <!-- Thao tác (2:1066 / 46:2260) -->
+      <div class="grid grid-cols-2 gap-3">
+        <button
+          type="button"
+          (click)="edit()"
+          class="rounded-button bg-primary-soft px-[18px] py-[15px] text-[15px] font-bold text-primary hover:bg-primary-tint"
+        >
+          Chỉnh sửa
+        </button>
+        <button
+          type="button"
+          (click)="askDelete()"
+          class="rounded-button border border-line bg-surface px-[18px] py-[15px] text-[15px] font-bold text-danger hover:bg-canvas"
+        >
+          Xoá khoản chi
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile: ghi chú cuối (2:1032) -->
+  <p class="text-center text-[11px] text-muted lg:hidden">{{ tripFooter() }}</p>
+
+  <!-- ============ Xác nhận xoá (67:1979 / 67:2108) ============ -->
+  @if (confirmOpen()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 px-[22px]" (click)="cancelDelete()">
+      <div
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="confirm-title"
+        aria-describedby="confirm-desc"
+        (click)="$event.stopPropagation()"
+        class="flex w-full max-w-[346px] flex-col gap-4 rounded-card bg-surface p-[25px] shadow-xl lg:max-w-[440px]"
+      >
+        <h2 id="confirm-title" class="text-[21px] font-bold text-ink">Bạn có chắc muốn tiếp tục?</h2>
+        <p id="confirm-desc" class="text-[15px] text-muted">
+          Thao tác xóa hoặc đóng cần được xác nhận trước khi thực hiện. Khoản chi “{{ e.title }}” sẽ bị xóa khỏi chuyến đi.
+        </p>
+        <div class="flex flex-col gap-2">
+          <button
+            type="button"
+            (click)="cancelDelete()"
+            class="rounded-button bg-primary px-3 py-3 text-[15px] font-bold text-white hover:opacity-90"
+          >
+            Hủy, giữ nguyên dữ liệu
+          </button>
+          <button
+            type="button"
+            (click)="confirmDelete()"
+            class="rounded-button px-3 py-3 text-[15px] font-bold text-danger hover:bg-canvas"
+          >
+            Xoá khoản chi
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+} @else {
+  <section class="flex flex-col items-center gap-3 rounded-card bg-surface p-6 text-center">
+    <h2 class="text-lg font-bold text-ink">Không tìm thấy khoản chi</h2>
+    <p class="text-[13px] text-muted">Khoản chi có thể đã bị xoá.</p>
+    <a [routerLink]="listLink()" class="text-[13px] font-bold text-primary hover:underline">Về danh sách chi tiêu</a>
+  </section>
+}
